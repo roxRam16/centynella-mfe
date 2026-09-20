@@ -1,0 +1,27 @@
+# Dependencias y artefactos: se regeneran dentro de la imagen
+node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# Control de versiones y CI (no forman parte de la imagen)
+.git
+.gitignore
+.github
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentación y editor
+*.md
+.vscode
+.idea
+
+# Logs y SO
+*.log
+.DS_Store
+Thumbs.db
+
+# private/ SÍ entra al contexto de build: Vite lee de ahí las variables VITE_*.
+# Nunca llega a la imagen final (solo se copia dist/ a nginx).

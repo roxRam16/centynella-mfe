@@ -1,0 +1,45 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ThemeProvider } from '@/theme';
+import { Button } from './Button';
+
+const renderButton = (ui: React.ReactElement) => render(<ThemeProvider>{ui}</ThemeProvider>);
+
+describe('<Button />', () => {
+  it('renderiza el texto y responde al clic', async () => {
+    const onClick = vi.fn();
+    renderButton(<Button onClick={onClick}>Guardar</Button>);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('aplica la variante primary por defecto (contained)', () => {
+    renderButton(<Button>Guardar</Button>);
+    expect(screen.getByRole('button')).toHaveClass('MuiButton-contained', 'MuiButton-colorPrimary');
+  });
+
+  it.each([
+    ['secondary', 'MuiButton-contained', 'MuiButton-colorSecondary'],
+    ['outlined', 'MuiButton-outlined', 'MuiButton-colorPrimary'],
+    ['text', 'MuiButton-text', 'MuiButton-colorPrimary'],
+  ] as const)('mapea la variante %s', (variant, variantClass, colorClass) => {
+    renderButton(<Button variant={variant}>Acción</Button>);
+    expect(screen.getByRole('button')).toHaveClass(variantClass, colorClass);
+  });
+
+  it('no dispara clic cuando está cargando', async () => {
+    const onClick = vi.fn();
+    renderButton(
+      <Button loading onClick={onClick}>
+        Enviar
+      </Button>,
+    );
+
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    // MUI aplica pointer-events:none al estado loading; se omite esa verificación para intentar el clic igualmente.
+    await userEvent.setup({ pointerEventsCheck: 0 }).click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+});
