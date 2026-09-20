@@ -8,6 +8,7 @@ import LogoutIcon from '@mui/icons-material/LogoutOutlined';
 import PersonIcon from '@mui/icons-material/PersonOutline';
 import { Avatar, DropdownMenu, Logo } from '@/components';
 import { config } from '@/config/env';
+import { APP_VERSION } from '@/config/version';
 import { remoteRegistry } from '@/federation';
 import type { RemoteDefinition } from '@/federation';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +24,7 @@ interface NavEntry {
 const ADMIN_LINKS: readonly NavEntry[] = [
   { to: '/admin/users', label: 'Usuarios', permission: PERMISSIONS.USERS_READ },
   { to: '/admin/roles', label: 'Roles', permission: PERMISSIONS.ROLES_READ },
+  { to: '/admin/logs', label: 'Bitácora', permission: PERMISSIONS.LOGS_READ },
 ];
 
 /**
@@ -124,7 +126,7 @@ export function ShellLayout({
 
       <Box component="footer" sx={{ py: 2, textAlign: 'center', color: 'text.secondary' }}>
         <Typography variant="body2">
-          {config.appName} · ambiente {config.appEnv}
+          {config.appName} · ambiente {config.appEnv} · V.{APP_VERSION}
         </Typography>
       </Box>
     </Box>

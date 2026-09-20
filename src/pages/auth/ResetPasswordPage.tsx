@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { Alert, Button, Link, PasswordField } from '@/components';
+import { Alert, Button, Link, PasswordField, PasswordRequirements } from '@/components';
 import type { RedirectState } from '@/routes/guards';
 import { resetPassword } from '@/services/authService';
 import { getErrorMessage } from '@/utils/errors';
@@ -21,8 +21,10 @@ export function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ResetForm>({ resolver: zodResolver(resetPasswordSchema) });
+  const password = useWatch({ control, name: 'password' }) ?? '';
 
   const onSubmit = handleSubmit(async ({ password }) => {
     if (!token) return;
@@ -54,14 +56,17 @@ export function ResetPasswordPage() {
           <Stack component="form" spacing={2.5} noValidate onSubmit={onSubmit}>
             <PasswordField
               label="Contraseña nueva"
-              placeholder="8+ caracteres, letras y números"
+              placeholder="8+ caracteres"
               autoComplete="new-password"
+              maxLength={128}
               error={errors.password?.message}
               {...register('password')}
             />
+            <PasswordRequirements password={password} />
             <PasswordField
               label="Confirmar contraseña"
               autoComplete="new-password"
+              maxLength={128}
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />

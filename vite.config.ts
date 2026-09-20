@@ -1,9 +1,15 @@
 /// <reference types="vitest/config" />
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { federation } from '@module-federation/vite';
 import { FEDERATION_NAME, SHARED_DEPENDENCIES, parseRemotes } from './federation.config';
+
+/** Versión de la app: única fuente de verdad = package.json (la sube un hook de git). */
+const { version: APP_VERSION } = JSON.parse(readFileSync('./package.json', 'utf8')) as {
+  version: string;
+};
 
 /** Carpeta con los .env (fuera de la raíz, por convención del proyecto). */
 const ENV_DIR = 'private';
@@ -14,6 +20,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     envDir: ENV_DIR,
+    define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
     plugins: [
       react(),
       // El plugin de federación no aporta nada en tests unitarios (jsdom).
@@ -39,7 +46,7 @@ export default defineConfig(({ mode }) => {
       testTimeout: 20_000,
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
-      include: ['src/**/*.test.{ts,tsx}', '*.test.ts'],
+      include: ['src/**/*.test.{ts,tsx}', '*.test.ts', 'scripts/**/*.test.mjs'],
       env: {
         VITE_APP_NAME: 'CENTYNELLA',
         VITE_APP_ENV: 'sandbox',

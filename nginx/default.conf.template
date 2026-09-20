@@ -1,8 +1,10 @@
-# CENTYNELLA-MFE · servidor estático del shell
+# CENTYNELLA-MFE · servidor estático del shell (plantilla: la procesa envsubst al arrancar)
 
 server {
   listen 80;
   server_name _;
+  server_tokens off;            # no revelar la versión de nginx
+  client_max_body_size 16k;     # es un servidor estático: no necesita recibir cuerpos grandes
 
   root /usr/share/nginx/html;
   index index.html;
@@ -10,20 +12,26 @@ server {
   gzip on;
   gzip_types text/css application/javascript application/json image/svg+xml;
 
-  # Cabeceras de seguridad básicas
-  add_header X-Content-Type-Options "nosniff" always;
-  add_header X-Frame-Options "SAMEORIGIN" always;
-  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  include /etc/nginx/conf.d/security-headers.inc;
+
+  # Errores del propio servidor: página estática amable (funciona aunque la app no cargue)
+  error_page 500 502 503 504 /50x.html;
+  location = /50x.html {
+    internal;
+    include /etc/nginx/conf.d/security-headers.inc;
+  }
 
   # Sonda de salud para el balanceador / ECS
   location = /health {
     access_log off;
     default_type text/plain;
+    include /etc/nginx/conf.d/security-headers.inc;
     return 200 "ok";
   }
 
   # Assets con hash en el nombre: cache larga e inmutable
   location /assets/ {
+    include /etc/nginx/conf.d/security-headers.inc;
     add_header Cache-Control "public, max-age=31536000, immutable";
     try_files $uri =404;
   }
@@ -31,13 +39,15 @@ server {
   # remoteEntry (manifiesto de federación): nunca cachear, o los remotes quedarían desactualizados.
   # CORS abierto para que otros shells/remotes puedan consumirlo si hiciera falta.
   location ~* /remoteEntry.*\.js$ {
+    include /etc/nginx/conf.d/security-headers.inc;
     add_header Cache-Control "no-store";
     add_header Access-Control-Allow-Origin "*";
     try_files $uri =404;
   }
 
-  # SPA: cualquier ruta cae en index.html (react-router resuelve en el cliente)
+  # SPA: cualquier ruta cae en index.html (react-router resuelve en el cliente, incluido el 404 amable)
   location / {
+    include /etc/nginx/conf.d/security-headers.inc;
     add_header Cache-Control "no-cache";
     try_files $uri $uri/ /index.html;
   }

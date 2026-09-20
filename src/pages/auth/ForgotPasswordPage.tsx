@@ -55,6 +55,7 @@ export function ForgotPasswordPage() {
               label="Correo electrónico"
               type="email"
               autoComplete="email"
+              maxLength={254}
               error={errors.email?.message}
               {...register('email')}
             />

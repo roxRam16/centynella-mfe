@@ -6,7 +6,7 @@
 #   Etapa 2 (runtime): sirve solo el estático con nginx (imagen mínima)
 #
 #   docker build --build-arg APP_ENV=sandbox -t centynella-mfe:sandbox .
-#   docker run --rm -p 8080:80 centynella-mfe:sandbox
+#   docker run --rm -p 8080:80 -e API_ORIGIN=http://localhost:8000 centynella-mfe:sandbox
 # ─────────────────────────────────────────────────────────────
 
 # ── Etapa 1: build ───────────────────────────────────────────
@@ -18,6 +18,8 @@ ARG APP_ENV=sandbox
 
 # Capa de dependencias primero: se cachea mientras no cambien package*.json
 COPY package.json package-lock.json ./
+# `npm ci` ejecuta el script `prepare` (activa los hooks de git; sin .git no hace nada)
+COPY scripts ./scripts
 RUN npm ci
 
 COPY . .
@@ -28,8 +30,15 @@ RUN npm run "build:${APP_ENV}"
 # ── Etapa 2: runtime ─────────────────────────────────────────
 FROM nginx:1.27-alpine AS runtime
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Plantillas de nginx: el contenedor las procesa al arrancar (envsubst) con las variables de abajo.
+COPY nginx/ /etc/nginx/templates/
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# Orígenes permitidos por la CSP (cámbialos en `docker run -e` / task definition de ECS):
+#   API_ORIGIN      origen de CENTYNELLA-CORE
+#   REMOTE_ORIGINS  microfrontends remotos (separados por espacio)
+ENV API_ORIGIN=http://localhost:8000
+ENV REMOTE_ORIGINS=""
 
 EXPOSE 80
 

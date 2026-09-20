@@ -1,4 +1,5 @@
 export { HomePage } from './HomePage';
-export { NotFoundPage } from './NotFoundPage';
 export { ForbiddenPage } from './ForbiddenPage';
+export { ErrorRoute } from './ErrorRoute';
 export { ProfilePage } from './ProfilePage';
+export { StatusPage } from './StatusPage';

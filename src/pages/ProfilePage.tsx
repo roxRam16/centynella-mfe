@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -10,6 +10,7 @@ import {
   Chip,
   PageHeader,
   PasswordField,
+  PasswordRequirements,
   Spinner,
   Tabs,
   TextField,
@@ -77,6 +78,7 @@ function PersonalDataForm({ user }: { user: Profile }) {
       <TextField
         label="Nombre"
         autoComplete="name"
+        maxLength={80}
         error={errors.name?.message}
         {...register('name')}
       />
@@ -111,8 +113,10 @@ function ChangePasswordForm() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<PasswordForm>({ resolver: zodResolver(changePasswordSchema) });
+  const password = useWatch({ control, name: 'password' }) ?? '';
 
   const onSubmit = handleSubmit(async ({ currentPassword, password }) => {
     setSaved(false);
@@ -142,11 +146,13 @@ function ChangePasswordForm() {
       />
       <PasswordField
         label="Contraseña nueva"
-        placeholder="8+ caracteres, letras y números"
+        placeholder="8+ caracteres"
         autoComplete="new-password"
+        maxLength={128}
         error={errors.password?.message}
         {...register('password')}
       />
+      <PasswordRequirements password={password} />
       <PasswordField
         label="Confirmar contraseña nueva"
         autoComplete="new-password"

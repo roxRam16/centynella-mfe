@@ -31,11 +31,20 @@ describe('<ShellLayout />', () => {
     );
   });
 
+  it('el pie muestra el ambiente y la versión', () => {
+    renderShell();
+
+    expect(screen.getByRole('contentinfo')).toHaveTextContent(
+      /ambiente sandbox · V\.\d+\.\d+\.\d+/,
+    );
+  });
+
   it('muestra los enlaces de administración según los permisos', () => {
     renderShell();
 
     expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute('href', '/admin/users');
     expect(screen.getByRole('link', { name: 'Roles' })).toHaveAttribute('href', '/admin/roles');
+    expect(screen.getByRole('link', { name: 'Bitácora' })).toHaveAttribute('href', '/admin/logs');
   });
 
   it('oculta los enlaces para quien no tiene los permisos', () => {

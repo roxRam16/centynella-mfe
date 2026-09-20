@@ -7,8 +7,12 @@ export type { HealthStatus } from './healthService';
 export * as authService from './authService';
 export * as usersService from './usersService';
 export * as rolesService from './rolesService';
+export * as logsService from './logsService';
 export { PERMISSIONS } from './types';
 export type {
+  LogEntry,
+  LogFilters,
+  LogLevel,
   Page,
   PermissionInfo,
   PermissionKey,

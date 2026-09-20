@@ -97,7 +97,7 @@ describe('<UsersPage />', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Nuevo usuario' });
     await userEvent.type(within(dialog).getByLabelText('Nombre'), 'Marta Ruiz');
     await userEvent.type(within(dialog).getByLabelText('Correo electrónico'), 'marta@example.com');
-    await userEvent.type(within(dialog).getByLabelText('Contraseña inicial'), 'Segura12345');
+    await userEvent.type(within(dialog).getByLabelText('Contraseña inicial'), 'Segura#12345');
     await userEvent.selectOptions(within(dialog).getByLabelText('Rol'), 'manager');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Crear usuario' }));
 
@@ -105,7 +105,7 @@ describe('<UsersPage />', () => {
     expect(api.callsTo('POST /api/v1/users')[0].body).toEqual({
       name: 'Marta Ruiz',
       email: 'marta@example.com',
-      password: 'Segura12345',
+      password: 'Segura#12345',
       role: 'manager',
       status: 'active',
     });
@@ -125,7 +125,7 @@ describe('<UsersPage />', () => {
 
     await userEvent.type(within(dialog).getByLabelText('Nombre'), 'Ana Copia');
     await userEvent.type(within(dialog).getByLabelText('Correo electrónico'), 'ana@example.com');
-    await userEvent.type(within(dialog).getByLabelText('Contraseña inicial'), 'Segura12345');
+    await userEvent.type(within(dialog).getByLabelText('Contraseña inicial'), 'Segura#12345');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Crear usuario' }));
 
     expect(

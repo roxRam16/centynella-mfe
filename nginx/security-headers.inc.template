@@ -1,0 +1,15 @@
+# Cabeceras de seguridad del shell. Se INCLUYEN en cada `location` porque nginx descarta las
+# `add_header` heredadas del `server` en cuanto un `location` define alguna propia.
+#
+# ${API_ORIGIN} y ${REMOTE_ORIGINS} se sustituyen al arrancar el contenedor (envsubst):
+#   API_ORIGIN      origen de CENTYNELLA-CORE, ej. https://api.centynella.com
+#   REMOTE_ORIGINS  orígenes de los microfrontends remotos, separados por espacio (opcional)
+#
+# CSP: solo se ejecuta código del propio origen (y de los remotes declarados). Un <script>
+# inyectado por un atacante NO se ejecutaría. `style-src 'unsafe-inline'` lo exige Emotion (MUI).
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-Frame-Options "DENY" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' ${REMOTE_ORIGINS}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ${API_ORIGIN} ${REMOTE_ORIGINS}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" always;

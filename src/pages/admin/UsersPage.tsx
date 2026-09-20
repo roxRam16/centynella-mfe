@@ -188,6 +188,7 @@ export function UsersPage() {
             label="Buscar"
             type="search"
             placeholder="Nombre o correo"
+            maxLength={100}
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);

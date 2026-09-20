@@ -97,8 +97,8 @@ describe('<RegisterPage />', () => {
   const fillValid = async () => {
     await type('Nombre', 'Ana Pérez');
     await type('Correo electrónico', 'ana@example.com');
-    await type('Contraseña', 'Segura12345');
-    await type('Confirmar contraseña', 'Segura12345');
+    await type('Contraseña', 'Segura#12345');
+    await type('Confirmar contraseña', 'Segura#12345');
   };
 
   it('exige que las contraseñas coincidan', async () => {
@@ -107,8 +107,8 @@ describe('<RegisterPage />', () => {
 
     await type('Nombre', 'Ana');
     await type('Correo electrónico', 'ana@example.com');
-    await type('Contraseña', 'Segura12345');
-    await type('Confirmar contraseña', 'Otra12345');
+    await type('Contraseña', 'Segura#12345');
+    await type('Confirmar contraseña', 'Otra#12345');
     await click('Registrarme');
 
     expect(await screen.findByText('Las contraseñas no coinciden')).toBeInTheDocument();
@@ -125,13 +125,13 @@ describe('<RegisterPage />', () => {
     await waitFor(() =>
       expect(auth.login).toHaveBeenCalledWith({
         email: 'ana@example.com',
-        password: 'Segura12345',
+        password: 'Segura#12345',
       }),
     );
     expect(api.calls[0].body).toEqual({
       name: 'Ana Pérez',
       email: 'ana@example.com',
-      password: 'Segura12345',
+      password: 'Segura#12345',
     });
   });
 
@@ -177,7 +177,7 @@ describe('<ForgotPasswordPage />', () => {
     await type('Correo electrónico', 'no-es-correo');
     await click('Enviar enlace');
 
-    expect(await screen.findByText('Ingresa un correo válido')).toBeInTheDocument();
+    expect(await screen.findByText('El correo debe incluir @')).toBeInTheDocument();
   });
 
   it('muestra un error de red', async () => {
@@ -216,12 +216,12 @@ describe('<ResetPasswordPage />', () => {
     const api = mockApi({ 'POST /api/v1/auth/password-resets': () => undefined });
     renderReset('/reset-password?token=tok-123');
 
-    await type('Contraseña nueva', 'Nueva12345');
-    await type('Confirmar contraseña', 'Nueva12345');
+    await type('Contraseña nueva', 'Nueva#12345');
+    await type('Confirmar contraseña', 'Nueva#12345');
     await click('Guardar contraseña');
 
     expect(await screen.findByText(/Tu contraseña fue actualizada/)).toBeInTheDocument();
-    expect(api.calls[0].body).toEqual({ token: 'tok-123', password: 'Nueva12345' });
+    expect(api.calls[0].body).toEqual({ token: 'tok-123', password: 'Nueva#12345' });
   });
 
   it('valida la política de contraseña', async () => {
@@ -240,8 +240,8 @@ describe('<ResetPasswordPage />', () => {
     });
     renderReset('/reset-password?token=vencido');
 
-    await type('Contraseña nueva', 'Nueva12345');
-    await type('Confirmar contraseña', 'Nueva12345');
+    await type('Contraseña nueva', 'Nueva#12345');
+    await type('Confirmar contraseña', 'Nueva#12345');
     await click('Guardar contraseña');
 
     expect(await screen.findByRole('alert')).toHaveTextContent('ya expiró');

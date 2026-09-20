@@ -1,6 +1,7 @@
 import type { Page, PermissionInfo, Profile, Role, TokenResponse, User } from '@/services/types';
 
 export const ALL_PERMISSIONS = [
+  'logs:read',
   'roles:manage',
   'roles:read',
   'users:create',

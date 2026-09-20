@@ -28,6 +28,8 @@ describe('<AppRoutes />', () => {
       'GET /api/v1/users': () => ({ json: { items: [], total: 0, page: 1, page_size: 10 } }),
       'GET /api/v1/roles': () => ({ json: [] }),
       'GET /api/v1/permissions': () => ({ json: [] }),
+      'GET /api/v1/logs': () => ({ json: { items: [], total: 0, page: 1, page_size: 25 } }),
+      'GET /api/v1/logs/modules': () => ({ json: [] }),
     });
   });
 
@@ -47,9 +49,32 @@ describe('<AppRoutes />', () => {
       expect(screen.getByRole('heading', { level: 1, name: '¡Hola Mundo!' })).toBeInTheDocument();
     });
 
-    it('muestra 404 en rutas desconocidas', () => {
+    it('muestra el 404 amable en rutas desconocidas', () => {
       renderAt('/no-existe');
 
+      expect(screen.getByRole('heading', { name: 'Página no encontrada' })).toBeInTheDocument();
+      expect(screen.getByText('Error 404')).toBeInTheDocument();
+    });
+
+    it('la bitácora exige logs:read', async () => {
+      renderAt('/admin/logs');
+      expect(
+        await screen.findByRole('heading', { level: 1, name: 'Bitácora' }),
+      ).toBeInTheDocument();
+    });
+
+    it('sin logs:read la bitácora muestra 403', () => {
+      renderAt('/admin/logs', { auth: { user: makeProfile({ permissions: ['users:read'] }) } });
+
+      expect(screen.getByRole('heading', { name: 'Acceso restringido' })).toBeInTheDocument();
+    });
+
+    it('/error/:code muestra la pantalla de cualquier código HTTP', () => {
+      const { unmount } = renderAt('/error/503');
+      expect(screen.getByRole('heading', { name: 'Estamos en mantenimiento' })).toBeInTheDocument();
+      unmount();
+
+      renderAt('/error/no-es-un-codigo');
       expect(screen.getByRole('heading', { name: 'Página no encontrada' })).toBeInTheDocument();
     });
 
@@ -96,6 +121,13 @@ describe('<AppRoutes />', () => {
   });
 
   describe('sin sesión', () => {
+    it('una URL inexistente muestra el 404 (no redirige al login)', () => {
+      renderAt('/ruta/que/no-existe', { auth: { user: null } });
+
+      expect(screen.getByRole('heading', { name: 'Página no encontrada' })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Bienvenido' })).not.toBeInTheDocument();
+    });
+
     it('redirige cualquier ruta privada al login', () => {
       renderAt('/', { auth: { user: null } });
 

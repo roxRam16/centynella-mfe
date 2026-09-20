@@ -90,14 +90,21 @@ export function RoleFormDialog({ open, role, permissions, onClose, onSaved }: Ro
         {!isEdit && (
           <TextField
             label="Clave"
+            maxLength={32}
             helperText="Identificador estable: minúsculas, números, - o _"
             error={errors.key?.message}
             {...register('key')}
           />
         )}
-        <TextField label="Nombre" error={errors.name?.message} {...register('name')} />
+        <TextField
+          label="Nombre"
+          maxLength={60}
+          error={errors.name?.message}
+          {...register('name')}
+        />
         <TextField
           label="Descripción"
+          maxLength={200}
           error={errors.description?.message}
           {...register('description')}
         />

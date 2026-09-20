@@ -42,16 +42,19 @@ centynella-mfe/
 │   ├── federation/         # Registro de remotes, RemoteModule (Suspense + ErrorBoundary)
 │   ├── hooks/              # useAuth, useAsyncResource, useDebouncedValue, useApiHealth
 │   ├── layouts/            # ShellLayout (app) y AuthLayout (login/registro)
-│   ├── pages/              # Pantallas: inicio, perfil, auth/, admin/
+│   ├── pages/              # Pantallas: inicio, perfil, errores (StatusPage), auth/, admin/
 │   ├── routes/             # Enrutado y guardias (RequireAuth, PublicOnly, RequirePermission)
 │   ├── services/           # apiClient, httpClient, tokenStore y servicios de auth/usuarios/roles
 │   ├── theme/              # Paleta, tokens (espaciado, radios, elevación) y tema MUI
 │   ├── utils/              # Validación (zod), errores, formato, color, texto
 │   └── test/               # Ayudantes de prueba (mockApi, factories, renderWithProviders)
 ├── .github/workflows/      # deploy.yml
+├── .githooks/              # pre-commit: versionado automático
+├── scripts/                # bump-version.mjs (versión) · setup-hooks.mjs
+├── nginx/                  # Plantillas de nginx (cabeceras de seguridad + CSP)
 ├── federation.config.ts    # Configuración de Module Federation (host)
 ├── vite.config.ts · tsconfig*.json · eslint.config.js · .prettierrc
-├── Dockerfile · nginx.conf · .dockerignore · .gitignore
+├── Dockerfile · .dockerignore · .gitignore
 └── index.html · package.json
 ```
 
@@ -151,6 +154,54 @@ El shell es el **dueño de la sesión** (los remotes la consumen con `useAuth()`
 
 Uso desde un remote: `const { user, hasPermission } = useAuth();` y `apiRequest('/ruta')` (adjunta el token y renueva la sesión solo).
 
+## Versión de la aplicación
+
+El login muestra **"Sistema de inventario IA 2025 - V.0.0.1"** (y el pie de la app la versión). La versión sale del campo `version` de `package.json`, que Vite inyecta al compilar ([version.ts](src/config/version.ts)): una sola fuente de verdad.
+
+**Se incrementa sola una vez por cada push.** Un hook de git (`.githooks/pre-commit`) ejecuta [scripts/bump-version.mjs](scripts/bump-version.mjs): el primer commit posterior a un push sube el parche (`0.0.1 → 0.0.2`); los siguientes commits, hasta el próximo push, ya la encuentran distinta de la del remoto y no la tocan. Usa `npm version`, que actualiza **a la vez `package.json` y `package-lock.json`** (el lock guarda la versión en dos lugares y npm los mantiene sincronizados; no hay que editarlo a mano).
+
+- El hook se activa solo con `npm install` (script `prepare` → `git config core.hooksPath .githooks`).
+- Omitir en un commit concreto: `SKIP_VERSION_BUMP=1 git commit …`.
+- Para cambios mayores (minor/major) edita `package.json` a mano: el hook respeta una versión ya distinta de la del remoto.
+
+## Seguridad
+
+**Validación de entradas** ([validation.ts](src/utils/validation.ts), espejo del backend, que sigue siendo la autoridad):
+
+| Campo                 | Reglas                                                                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Correo                | Debe llevar `@`; patrón estricto (sin espacios, comillas, `< >`); máx. 254                                                                                            |
+| Contraseña nueva      | 8+ caracteres, **mayúscula, minúscula, número y símbolo**, sin espacios ni caracteres de control; máx. 128. Un checklist en vivo marca cada requisito (icono + texto) |
+| Nombre                | Solo letras (cualquier idioma), espacios, apóstrofes, puntos y guiones                                                                                                |
+| Textos libres (roles) | Sin `<` `>` ni caracteres de control                                                                                                                                  |
+
+**Contra inyección de HTML/scripts (XSS):** los inputs rechazan marcado; además **React escapa todo lo que pinta** (jamás se usa `dangerouslySetInnerHTML`), así un `<script>` que llegara de la base de datos se vería como texto. Las contraseñas sí pueden llevar `<` `>` porque se guardan solo como hash y nunca se muestran. **Contra inyección NoSQL:** el backend usa tipos estrictos (un `{"$ne": ""}` en un correo se rechaza) y el buscador trata el texto como literal.
+
+**Cabeceras y CSP** (nginx, [nginx/](nginx/)): `Content-Security-Policy` (solo se ejecuta código del propio origen y de los remotes declarados; un script inyectado no correría), `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y HSTS, en **todas** las rutas. El contenedor lee dos variables para armar la CSP:
+
+| Variable         | Descripción                                                                  |
+| ---------------- | ---------------------------------------------------------------------------- |
+| `API_ORIGIN`     | Origen de CENTYNELLA-CORE (ej. `https://api.centynella.com`) — `connect-src` |
+| `REMOTE_ORIGINS` | Orígenes de los microfrontends remotos, separados por espacio (opcional)     |
+
+```bash
+docker run --rm -p 8080:80 -e API_ORIGIN=https://api.centynella.com centynella-mfe:sandbox
+```
+
+## Pantallas de error
+
+Nadie ve una página en blanco ni un error técnico ([StatusPage](src/pages/StatusPage.tsx), mensajes en [statusCatalog.ts](src/pages/statusCatalog.ts)):
+
+- **Dirección inexistente** (con o sin sesión) → **404** a pantalla completa con el fondo de marca y salida a inicio.
+- **Sin permiso** → **403** dentro del shell (se conserva el menú).
+- **Error inesperado de la app** → **500** (`AppErrorBoundary`), con "Reintentar"; se descarta al navegar a otra página.
+- **`/error/:code`** muestra cualquier código HTTP 400-599 (401 → "Iniciar sesión", 402, 408, 429, 502, 503 mantenimiento, 504…); los no catalogados usan un mensaje genérico 4xx/5xx.
+- **Errores del propio nginx** (500/502/503/504) → página estática [50x.html](public/50x.html), que funciona aunque la app no cargue.
+
+## Bitácora
+
+Pantalla **/admin/logs** (permiso `logs:read`): todo lo que ocurre en el sistema, en la base de datos de logs del backend. Filtros por **módulo, nivel mínimo, periodo, usuario, sesión, petición** y texto; un clic en un usuario, sesión o petición filtra por él para seguir el hilo, y "Ver" muestra el detalle completo (como texto, escapado). Ver el README de CENTYNELLA-CORE para qué se registra.
+
 ## Patrones y buenas prácticas
 
 | Patrón / práctica             | Dónde                                                          |
@@ -171,7 +222,7 @@ Uso desde un remote: `const { user, hasPermission } = useAuth();` y `apiRequest(
 ## Pruebas
 
 ```bash
-npm test                # 259 pruebas (Vitest + Testing Library)
+npm test                # 360 pruebas (Vitest + Testing Library)
 npm run test:coverage   # falla si la cobertura baja de 80 %
 ```
 
@@ -184,7 +235,7 @@ docker build --build-arg APP_ENV=sandbox -t centynella-mfe:sandbox .
 docker run --rm -p 8080:80 centynella-mfe:sandbox        # http://localhost:8080
 ```
 
-Build multi-stage: Node compila con `private/.env.<APP_ENV>` y **nginx** sirve solo `dist/` (~50 MB). Incluye fallback de SPA, cabeceras de seguridad, caché inmutable para `assets/`, `remoteEntry` sin caché y sonda `/health`.
+Build multi-stage: Node compila con `private/.env.<APP_ENV>` y **nginx** sirve solo `dist/` (~50 MB). Incluye fallback de SPA, cabeceras de seguridad y CSP (ver _Seguridad_), caché inmutable para `assets/`, `remoteEntry` sin caché, sonda `/health` y página estática para errores 5xx. Ojo: `VITE_API_BASE_URL` se **hornea al compilar** (ambiente = `APP_ENV`), mientras que `API_ORIGIN` (CSP) se define al **arrancar** el contenedor: deben apuntar al mismo backend.
 
 ## CI/CD
 
@@ -201,6 +252,15 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 20-sep-2026 — Bitácora, seguridad de entradas, pantallas de error y versionado (V.0.0.1)
+
+- Login: "Sistema de inventario IA 2025 - V.x.y.z" tomado de `package.json`; versión que sube sola una vez por push (hook de git; `package-lock.json` se actualiza a la vez con `npm version`).
+- Validación endurecida: correo estricto con `@`, contraseña con mayúscula/minúscula/número/símbolo (checklist en vivo), nombres y textos sin HTML; límites de longitud en los inputs.
+- Pantallas amables para 404 (URLs inexistentes), 403, 500 y cualquier código HTTP (`/error/:code`), más red de seguridad global de errores y página estática para errores de nginx.
+- Pantalla `/admin/logs` (bitácora) con filtros por módulo, nivel, periodo, usuario, sesión y petición.
+- nginx con CSP y cabeceras de seguridad en todas las rutas (plantillas con `API_ORIGIN` / `REMOTE_ORIGINS`).
+- 360 pruebas, cobertura ~96 %.
 
 ### 0.2.0 — Autenticación y sistema de diseño de marca
 

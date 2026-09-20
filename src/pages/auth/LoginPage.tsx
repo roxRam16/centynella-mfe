@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Alert, Button, GoogleButton, Link, PasswordField, TextField } from '@/components';
+import { APP_LABEL } from '@/config/version';
 import { useAuth } from '@/hooks/useAuth';
 import type { RedirectState } from '@/routes/guards';
 import { getErrorMessage } from '@/utils/errors';
@@ -42,6 +43,9 @@ export function LoginPage() {
       <Typography id="titulo-login" component="h1" variant="h2" sx={{ fontWeight: 700 }}>
         Bienvenido
       </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
+        {APP_LABEL}
+      </Typography>
 
       {notice && <Alert severity="success">{notice}</Alert>}
       {serverError && <Alert severity="error">{serverError}</Alert>}
@@ -51,6 +55,7 @@ export function LoginPage() {
           label="Correo electrónico"
           type="email"
           autoComplete="email"
+          maxLength={254}
           error={errors.email?.message}
           {...register('email')}
         />
@@ -58,6 +63,7 @@ export function LoginPage() {
           label="Contraseña"
           placeholder="8+ caracteres"
           autoComplete="current-password"
+          maxLength={128}
           error={errors.password?.message}
           {...register('password')}
         />

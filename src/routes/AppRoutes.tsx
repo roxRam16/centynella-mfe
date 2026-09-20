@@ -3,8 +3,8 @@ import { RemoteModule, remoteRegistry } from '@/federation';
 import type { RemoteDefinition } from '@/federation';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { ShellLayout } from '@/layouts/ShellLayout';
-import { HomePage, NotFoundPage, ProfilePage } from '@/pages';
-import { RolesPage, UsersPage } from '@/pages/admin';
+import { ErrorRoute, HomePage, ProfilePage, StatusPage } from '@/pages';
+import { LogsPage, RolesPage, UsersPage } from '@/pages/admin';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from '@/pages/auth';
 import { PERMISSIONS } from '@/services/types';
 import { PublicOnly, RequireAuth, RequirePermission } from './guards';
@@ -20,6 +20,7 @@ interface AppRoutesProps {
  *  · /reset-password es pública siempre (el enlace del correo debe funcionar con o sin sesión).
  *  · Privadas (`RequireAuth`): inicio, perfil, microfrontends y administración.
  *  · Administración exige permiso (`RequirePermission`); el backend lo valida en cada petición.
+ *  · Direcciones inexistentes → pantalla 404 amable; `/error/:code` muestra cualquier código HTTP.
  * Las rutas de cada microfrontend se generan desde el registro (`path/*` deja que el remote
  * maneje sus propias subrutas) y quedan protegidas por sesión automáticamente.
  */
@@ -52,9 +53,15 @@ export function AppRoutes({ remotes = remoteRegistry }: AppRoutesProps) {
           <Route element={<RequirePermission permission={PERMISSIONS.ROLES_READ} />}>
             <Route path="/admin/roles" element={<RolesPage />} />
           </Route>
-          <Route path="*" element={<NotFoundPage />} />
+          <Route element={<RequirePermission permission={PERMISSIONS.LOGS_READ} />}>
+            <Route path="/admin/logs" element={<LogsPage />} />
+          </Route>
         </Route>
       </Route>
+
+      {/* Cualquier otra dirección (con o sin sesión) → 404 amable a pantalla completa. */}
+      <Route path="/error/:code" element={<ErrorRoute />} />
+      <Route path="*" element={<StatusPage code={404} fullPage />} />
     </Routes>
   );
 }

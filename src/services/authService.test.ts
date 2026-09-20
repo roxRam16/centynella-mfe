@@ -27,24 +27,24 @@ describe('authService', () => {
 
     await authService.register({ name: 'Ana', email: 'a@b.co', password: 'Clave12345' });
     await authService.requestPasswordReset('a@b.co');
-    await authService.resetPassword('tok', 'Nueva12345');
+    await authService.resetPassword('tok', 'Nueva#12345');
 
     expect(api.calls.map((call) => call.path)).toEqual([
       '/api/v1/auth/register',
       '/api/v1/auth/password-reset-requests',
       '/api/v1/auth/password-resets',
     ]);
-    expect(api.calls[2].body).toEqual({ token: 'tok', password: 'Nueva12345' });
+    expect(api.calls[2].body).toEqual({ token: 'tok', password: 'Nueva#12345' });
   });
 
   it('changePassword traduce a los nombres del contrato del backend', async () => {
     const api = mockApi({ 'PUT /api/v1/users/me/password': () => ({ json: makeSession() }) });
 
-    await authService.changePassword('Actual123', 'Nueva12345');
+    await authService.changePassword('Actual123', 'Nueva#12345');
 
     expect(api.calls[0].body).toEqual({
       current_password: 'Actual123',
-      new_password: 'Nueva12345',
+      new_password: 'Nueva#12345',
     });
   });
 

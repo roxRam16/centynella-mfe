@@ -59,12 +59,12 @@ describe('<ProfilePage />', () => {
       const api = mockApi({ 'PUT /api/v1/users/me/password': () => ({ json: session }) });
       const { auth } = await openSecurity();
 
-      await fill('Actual12345', 'Nueva12345', 'Nueva12345');
+      await fill('Actual12345', 'Nueva#12345', 'Nueva#12345');
 
       expect(await screen.findByText(/Contraseña actualizada/)).toBeInTheDocument();
       expect(api.calls[0].body).toEqual({
         current_password: 'Actual12345',
-        new_password: 'Nueva12345',
+        new_password: 'Nueva#12345',
       });
       expect(auth.setSession).toHaveBeenCalledWith(session);
       expect(screen.getByLabelText('Contraseña actual')).toHaveValue(''); // el formulario se limpia
@@ -76,7 +76,7 @@ describe('<ProfilePage />', () => {
       });
       const { auth } = await openSecurity();
 
-      await fill('Equivocada1', 'Nueva12345', 'Nueva12345');
+      await fill('Equivocada1', 'Nueva#12345', 'Nueva#12345');
 
       expect(await screen.findByRole('alert')).toHaveTextContent(
         'La contraseña actual es incorrecta.',
@@ -88,7 +88,7 @@ describe('<ProfilePage />', () => {
       const api = mockApi({});
       await openSecurity();
 
-      await fill('Actual12345', 'Nueva12345', 'Distinta12345');
+      await fill('Actual12345', 'Nueva#12345', 'Distinta#12345');
 
       await waitFor(() =>
         expect(screen.getByText('Las contraseñas no coinciden')).toBeInTheDocument(),

@@ -1,8 +1,16 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
-import { Alert, Button, Dialog, PasswordField, Select, TextField } from '@/components';
+import {
+  Alert,
+  Button,
+  Dialog,
+  PasswordField,
+  PasswordRequirements,
+  Select,
+  TextField,
+} from '@/components';
 import type { SelectOption } from '@/components';
 import { createUser, updateUser } from '@/services/usersService';
 import type { User } from '@/services/types';
@@ -35,6 +43,7 @@ export function UserFormDialog({ open, user, roleOptions, onClose, onSaved }: Us
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CreateForm>({
     resolver: zodResolver(isEdit ? userEditSchema : userCreateSchema) as never,
@@ -46,6 +55,7 @@ export function UserFormDialog({ open, user, roleOptions, onClose, onSaved }: Us
       status: user?.status ?? 'active',
     },
   });
+  const password = useWatch({ control, name: 'password' }) ?? '';
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
@@ -80,10 +90,16 @@ export function UserFormDialog({ open, user, roleOptions, onClose, onSaved }: Us
     >
       <Stack id={formId} component="form" spacing={2} noValidate onSubmit={onSubmit} sx={{ pt: 1 }}>
         {serverError && <Alert severity="error">{serverError}</Alert>}
-        <TextField label="Nombre" error={errors.name?.message} {...register('name')} />
+        <TextField
+          label="Nombre"
+          maxLength={80}
+          error={errors.name?.message}
+          {...register('name')}
+        />
         <TextField
           label="Correo electrónico"
           type="email"
+          maxLength={254}
           disabled={isEdit}
           error={errors.email?.message}
           {...register('email')}
@@ -91,12 +107,14 @@ export function UserFormDialog({ open, user, roleOptions, onClose, onSaved }: Us
         {!isEdit && (
           <PasswordField
             label="Contraseña inicial"
-            placeholder="8+ caracteres, letras y números"
+            placeholder="8+ caracteres"
             autoComplete="new-password"
+            maxLength={128}
             error={errors.password?.message}
             {...register('password')}
           />
         )}
+        {!isEdit && <PasswordRequirements password={password} />}
         <Select
           label="Rol"
           options={roleOptions}

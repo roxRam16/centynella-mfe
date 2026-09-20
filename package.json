@@ -1,6 +1,6 @@
 {
   "name": "centynella-mfe",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "description": "CENTYNELLA-MFE: shell (host) de Module Federation para la administración y gestión de inventarios.",
@@ -19,7 +19,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepare": "node scripts/setup-hooks.mjs",
+    "version:bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

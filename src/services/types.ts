@@ -47,6 +47,38 @@ export interface Page<T> {
   page_size: number;
 }
 
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+
+/** Evento de la bitácora del sistema (`GET /api/v1/logs`). */
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  level: LogLevel;
+  service: string;
+  module: string;
+  event: string;
+  message: string;
+  environment: string;
+  request_id: string | null;
+  user_id: string | null;
+  session_id: string | null;
+  ip: string | null;
+  details: Record<string, unknown>;
+}
+
+export interface LogFilters {
+  module?: string;
+  /** Nivel mínimo. */
+  level?: LogLevel | '';
+  user_id?: string;
+  session_id?: string;
+  request_id?: string;
+  q?: string;
+  since?: string;
+  page?: number;
+  page_size?: number;
+}
+
 export interface UserFilters {
   q?: string;
   role?: string;
@@ -63,6 +95,7 @@ export const PERMISSIONS = {
   USERS_DELETE: 'users:delete',
   ROLES_READ: 'roles:read',
   ROLES_MANAGE: 'roles:manage',
+  LOGS_READ: 'logs:read',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

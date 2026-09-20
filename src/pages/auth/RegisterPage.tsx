@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { Alert, Button, GoogleButton, Link, PasswordField, TextField } from '@/components';
+import {
+  Alert,
+  Button,
+  GoogleButton,
+  Link,
+  PasswordField,
+  PasswordRequirements,
+  TextField,
+} from '@/components';
 import { useAuth } from '@/hooks/useAuth';
 import type { RedirectState } from '@/routes/guards';
 import { register as registerAccount } from '@/services/authService';
@@ -22,8 +30,10 @@ export function RegisterPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) });
+  const password = useWatch({ control, name: 'password' }) ?? '';
 
   const onSubmit = handleSubmit(async ({ name, email, password }) => {
     setServerError(null);
@@ -55,6 +65,7 @@ export function RegisterPage() {
         <TextField
           label="Nombre"
           autoComplete="name"
+          maxLength={80}
           error={errors.name?.message}
           {...register('name')}
         />
@@ -62,19 +73,23 @@ export function RegisterPage() {
           label="Correo electrónico"
           type="email"
           autoComplete="email"
+          maxLength={254}
           error={errors.email?.message}
           {...register('email')}
         />
         <PasswordField
           label="Contraseña"
-          placeholder="8+ caracteres, letras y números"
+          placeholder="8+ caracteres"
           autoComplete="new-password"
+          maxLength={128}
           error={errors.password?.message}
           {...register('password')}
         />
+        <PasswordRequirements password={password} />
         <PasswordField
           label="Confirmar contraseña"
           autoComplete="new-password"
+          maxLength={128}
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />

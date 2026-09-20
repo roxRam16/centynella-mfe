@@ -1,0 +1,4 @@
+#!/bin/sh
+# Versionado automático: sube el parche de package.json (y package-lock.json) una vez por push.
+# Detalles en scripts/bump-version.mjs. Omitir: SKIP_VERSION_BUMP=1 git commit ...
+node scripts/bump-version.mjs
