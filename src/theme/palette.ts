@@ -1,32 +1,91 @@
 /**
- * Paleta de CENTYNELLA — decisiones de teoría del color.
+ * Paleta de CENTYNELLA — fuente única de color de todo el proyecto.
  *
- * Esquema COMPLEMENTARIO + neutros (regla 60-30-10):
- *  · 60 % neutros  → slate (tinte azul frío, descansa la vista en pantallas de datos densas)
- *  · 30 % primary  → azul (hue ≈ 221°): confianza, estabilidad, orden — ideal para inventarios
- *  · 10 % accent   → naranja (hue ≈ 21°, complementario del azul): llama la atención
- *                    solo donde importa (acciones clave, alertas de stock).
+ * Origen: guía de estilo de marca (mockups/styles.jpg): esquema MONOCROMÁTICO azul + iris.
+ *   Blue #2D28F3 · Iris #6E6DF8 · Violet #7D58E0 · Light pink #D1CFF7 · Light blue #EEF3F9 · Dark gray #2B3037
  *
- * Colores semánticos (verde/ámbar/rojo/cian) = atributos PREATENTIVOS: el usuario
- * distingue el estado antes de leer. Nunca se usan solos: siempre van acompañados
- * de icono y texto (codificación redundante, accesible para daltonismo).
+ * Teoría del color aplicada:
+ *  · Regla 60-30-10 → 60 % neutros (lightBlue/blanco), 30 % iris-azules (marca), 10 % violet (acento).
+ *  · El azul transmite confianza; el iris aporta un toque distintivo → identidad fiable e innovadora.
+ *  · Colores semánticos (verde/ámbar/rojo) = atributos PREATENTIVOS: se distinguen antes de leer.
+ *    Siempre van con icono y texto (no dependen solo del color → accesible a daltonismo).
  *
- * Todos los pares texto/fondo cumplen WCAG AA (≥ 4.5:1); ver palette.test.ts.
+ * Accesibilidad (WCAG AA, verificada en palette.test.ts):
+ *  · Texto ≥ 4.5:1. Iris (#6E6DF8) sobre blanco da 4.03:1: solo para decoración y texto grande.
+ *  · Violet (#7D58E0) como TEXTO solo sobre blanco (4.83:1); sobre el fondo lightBlue da 4.33:1.
+ *  · Los bordes de campos siguen el diseño (sutiles); el foco usa borde violet + anillo visible.
  */
 
+export const brand = {
+  blue: '#2D28F3',
+  iris: '#6E6DF8',
+  violet: '#7D58E0',
+  lightPink: '#D1CFF7',
+  lightBlue: '#EEF3F9',
+  darkGray: '#2B3037',
+} as const;
+
 export const palette = {
-  primary: { light: '#3b82f6', main: '#1d4ed8', dark: '#1e3a8a', contrastText: '#ffffff' },
-  secondary: { light: '#f97316', main: '#c2410c', dark: '#7c2d12', contrastText: '#ffffff' },
-  success: { light: '#22c55e', main: '#15803d', dark: '#14532d', contrastText: '#ffffff' },
-  warning: { light: '#f59e0b', main: '#b45309', dark: '#78350f', contrastText: '#ffffff' },
-  error: { light: '#ef4444', main: '#b91c1c', dark: '#7f1d1d', contrastText: '#ffffff' },
-  info: { light: '#38bdf8', main: '#0369a1', dark: '#0c4a6e', contrastText: '#ffffff' },
+  brand,
+  primary: {
+    light: brand.iris,
+    main: brand.blue,
+    hover: '#4A46F5', // más claro al pasar el cursor (guía: Hover)
+    dark: '#1E1AB8', // más oscuro al presionar (guía: Pressed)
+    contrastText: '#FFFFFF',
+  },
+  secondary: {
+    light: '#9B7FEA',
+    main: brand.violet,
+    dark: '#5B3DB5',
+    contrastText: '#FFFFFF',
+  },
+  // Estados: `main` para texto/iconos, `bg` para el fondo tenue y `border` para el borde de alertas.
+  success: {
+    light: '#22C55E',
+    main: '#15803D',
+    dark: '#14532D',
+    bg: '#EAF6EE',
+    border: '#9AD1AE',
+    contrastText: '#FFFFFF',
+  },
+  warning: {
+    light: '#F59E0B',
+    main: '#B45309',
+    dark: '#78350F',
+    bg: '#FEF6E1',
+    border: '#F2CF7A',
+    contrastText: '#FFFFFF',
+  },
+  error: {
+    light: '#EF4444',
+    main: '#B91C1C',
+    dark: '#7F1D1D',
+    bg: '#FDECEC',
+    border: '#F3A9A9',
+    contrastText: '#FFFFFF',
+  },
+  info: {
+    light: brand.iris,
+    main: brand.blue,
+    dark: '#1E1AB8',
+    bg: '#ECEBFE',
+    border: '#B9B7FA',
+    contrastText: '#FFFFFF',
+  },
   neutral: {
-    background: '#f8fafc',
-    surface: '#ffffff',
-    divider: '#e2e8f0',
-    textPrimary: '#0f172a',
-    textSecondary: '#475569',
+    background: brand.lightBlue,
+    surface: '#FFFFFF',
+    surfaceAlt: '#FAF8FD', // panel de la ilustración del login
+    border: '#D5D9E5',
+    textPrimary: brand.darkGray,
+    textSecondary: '#5B6270',
+    textPlaceholder: '#666D7B', // ≥ 4.5:1 sobre blanco Y sobre el fondo lightBlue
+    disabled: '#9AA0AE',
+  },
+  focus: {
+    border: brand.violet,
+    ring: 'rgba(110, 109, 248, 0.35)', // halo iris
   },
 } as const;
 

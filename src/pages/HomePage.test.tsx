@@ -1,29 +1,22 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
-import { ThemeProvider } from '@/theme';
 import * as healthService from '@/services/healthService';
+import { renderWithProviders } from '@/test/renderWithProviders';
 import { HomePage } from './HomePage';
 
-const renderPage = () =>
-  render(
-    <ThemeProvider>
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>
-    </ThemeProvider>,
-  );
+const renderPage = () => renderWithProviders(<HomePage />);
 
 describe('<HomePage />', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('muestra el Hola Mundo como encabezado principal', () => {
+  it('muestra el Hola Mundo como encabezado principal y quién inició sesión', () => {
     vi.spyOn(healthService, 'getHealth').mockReturnValue(new Promise(() => {}));
     renderPage();
 
     expect(screen.getByRole('heading', { level: 1, name: '¡Hola Mundo!' })).toBeInTheDocument();
+    expect(screen.getByText('Admin Principal')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: /consultando/i })).toBeInTheDocument();
   });
 

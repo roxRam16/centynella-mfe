@@ -25,3 +25,6 @@ Thumbs.db
 
 # private/ SÍ entra al contexto de build: Vite lee de ahí las variables VITE_*.
 # Nunca llega a la imagen final (solo se copia dist/ a nginx).
+
+# Mockups y guías de diseño (no forman parte de la imagen)
+mockups

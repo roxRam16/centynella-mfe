@@ -1,18 +1,49 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import LogoutIcon from '@mui/icons-material/LogoutOutlined';
+import PersonIcon from '@mui/icons-material/PersonOutline';
+import { Avatar, DropdownMenu, Logo } from '@/components';
 import { config } from '@/config/env';
 import { remoteRegistry } from '@/federation';
+import type { RemoteDefinition } from '@/federation';
+import { useAuth } from '@/hooks/useAuth';
+import { PERMISSIONS } from '@/services/types';
+
+interface NavEntry {
+  to: string;
+  label: string;
+  /** Permiso necesario para ver el enlace (sin él, el enlace no se muestra). */
+  permission?: string;
+}
+
+const ADMIN_LINKS: readonly NavEntry[] = [
+  { to: '/admin/users', label: 'Usuarios', permission: PERMISSIONS.USERS_READ },
+  { to: '/admin/roles', label: 'Roles', permission: PERMISSIONS.ROLES_READ },
+];
 
 /**
  * Estructura base del shell con HTML semántico:
  * <header> · <nav> · <main> · <footer>, más un enlace "saltar al contenido"
  * para navegación por teclado y lectores de pantalla.
  */
-export function ShellLayout() {
+export function ShellLayout({
+  remotes = remoteRegistry,
+}: {
+  remotes?: readonly RemoteDefinition[];
+}) {
+  const { user, logout, hasPermission } = useAuth();
+  const navigate = useNavigate();
+
+  const links: NavEntry[] = [
+    { to: '/', label: 'Inicio' },
+    ...remotes.map((remote) => ({ to: remote.path, label: remote.label })),
+    ...ADMIN_LINKS.filter((link) => !link.permission || hasPermission(link.permission)),
+  ];
+
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <Box
@@ -28,23 +59,58 @@ export function ShellLayout() {
       </Box>
 
       <AppBar component="header" position="static" color="primary">
-        <Toolbar sx={{ flexWrap: 'wrap', gap: 2 }}>
-          <Typography component="span" variant="h6" sx={{ fontWeight: 700, flexGrow: 1 }}>
-            {config.appName}
-          </Typography>
+        <Toolbar sx={{ flexWrap: 'wrap', gap: 2, py: 0.5 }}>
+          <Box sx={{ flexGrow: { xs: 1, md: 0 }, mr: { md: 3 } }}>
+            <Logo tone="light" size={30} />
+          </Box>
 
-          <nav aria-label="Principal">
-            <Box component="ul" sx={{ display: 'flex', gap: 2, listStyle: 'none', m: 0, p: 0 }}>
-              <li>
-                <NavItem to="/" label="Inicio" />
-              </li>
-              {remoteRegistry.map((remote) => (
-                <li key={remote.id}>
-                  <NavItem to={remote.path} label={remote.label} />
+          <Box component="nav" aria-label="Principal" sx={{ order: { xs: 3, md: 0 }, flexGrow: 1 }}>
+            <Box
+              component="ul"
+              sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, listStyle: 'none', m: 0, p: 0 }}
+            >
+              {links.map((link) => (
+                <li key={link.to}>
+                  <NavItem to={link.to} label={link.label} />
                 </li>
               ))}
             </Box>
-          </nav>
+          </Box>
+
+          {user && (
+            <DropdownMenu
+              label="Menú de usuario"
+              trigger={
+                <>
+                  <Avatar name={user.name} size={32} />
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    sx={{
+                      display: { xs: 'none', sm: 'inline' },
+                      color: 'inherit',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {user.name}
+                  </Typography>
+                </>
+              }
+              items={[
+                {
+                  label: 'Mi perfil',
+                  icon: <PersonIcon fontSize="small" />,
+                  onClick: () => navigate('/profile'),
+                },
+                {
+                  label: 'Cerrar sesión',
+                  icon: <LogoutIcon fontSize="small" />,
+                  danger: true,
+                  onClick: () => void logout(),
+                },
+              ]}
+            />
+          )}
         </Toolbar>
       </AppBar>
 

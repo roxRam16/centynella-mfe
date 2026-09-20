@@ -22,3 +22,6 @@ npm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Mockups y guías de diseño (material de referencia, no se versiona)
+mockups/

@@ -4,11 +4,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Alert, Button, Grid, GridItem } from '@/components';
 import { config } from '@/config/env';
 import { remoteRegistry } from '@/federation';
-import { useApiHealth } from '@/hooks';
+import { useApiHealth, useAuth } from '@/hooks';
 
 /** Página de inicio: "Hola Mundo" del shell + prueba de vida contra CENTYNELLA-CORE. */
 export function HomePage() {
   const health = useApiHealth();
+  const { user } = useAuth();
 
   return (
     <Stack component="section" spacing={4} aria-labelledby="titulo-inicio">
@@ -19,6 +20,11 @@ export function HomePage() {
         <Typography color="text.secondary">
           Shell de {config.appName}: el host donde se integrarán los microfrontends.
         </Typography>
+        {user && (
+          <Typography variant="body2" color="text.secondary">
+            Sesión iniciada como <strong>{user.name}</strong> · rol {user.role}
+          </Typography>
+        )}
       </Stack>
 
       <Grid spacing={3}>

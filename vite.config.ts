@@ -35,6 +35,8 @@ export default defineConfig(({ mode }) => {
     build: { target: 'esnext', chunkSizeWarningLimit: 600 },
     test: {
       globals: true,
+      // Los renders con MUI + react-hook-form tardan más en frío (la 1.ª prueba de cada archivo).
+      testTimeout: 20_000,
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
       include: ['src/**/*.test.{ts,tsx}', '*.test.ts'],

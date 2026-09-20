@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@/theme';
 import { Button } from './Button';
+import { resolveButtonRadius } from './radius';
 
 const renderButton = (ui: React.ReactElement) => render(<ThemeProvider>{ui}</ThemeProvider>);
 
@@ -26,6 +27,24 @@ describe('<Button />', () => {
   ] as const)('mapea la variante %s', (variant, variantClass, colorClass) => {
     renderButton(<Button variant={variant}>Acción</Button>);
     expect(screen.getByRole('button')).toHaveClass(variantClass, colorClass);
+  });
+
+  it('el radio depende de la variante y la forma', () => {
+    expect(resolveButtonRadius('primary', 'pill')).toBe(9999);
+    expect(resolveButtonRadius('primary', 'rounded')).toBe(4);
+    expect(resolveButtonRadius('text', 'pill')).toBe(4); // el "text link" nunca es píldora
+  });
+
+  it('acepta sx del llamador sin romperse', () => {
+    renderButton(<Button sx={{ alignSelf: 'flex-start' }}>Guardar</Button>);
+
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeInTheDocument();
+  });
+
+  it('la acción destructiva usa el color de error', () => {
+    renderButton(<Button danger>Eliminar</Button>);
+
+    expect(screen.getByRole('button')).toHaveClass('MuiButton-colorError');
   });
 
   it('no dispara clic cuando está cargando', async () => {
