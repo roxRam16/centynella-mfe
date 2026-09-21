@@ -234,12 +234,12 @@ describe('<ShellLayout /> — menú lateral (riel + extendido)', () => {
     expect(auth.logout).toHaveBeenCalledTimes(1);
   });
 
-  it('el fondo del menú es un negro suave (no #000)', () => {
+  it('el fondo del menú es negro profundo (no #000 puro)', () => {
     renderShell();
 
     const panel = menu().firstElementChild as HTMLElement;
     expect(getComputedStyle(panel).backgroundColor).not.toBe('rgb(0, 0, 0)');
-    expect(palette.sidebar.background).toBe('#1F2430');
+    expect(palette.sidebar.background).toBe('#0A0A12');
   });
 });
 
@@ -263,5 +263,20 @@ describe('<AuthLayout />', () => {
     expect(
       screen.getByRole('img', { name: 'Ilustración de acceso seguro', hidden: true }),
     ).toBeInTheDocument();
+  });
+});
+
+describe('<ShellLayout /> — ancho del menú para las notificaciones', () => {
+  const inset = () => document.documentElement.style.getPropertyValue('--shell-sidebar-inset');
+
+  it('publica el ancho del menú (riel → extendido) y lo retira al desmontar', async () => {
+    const { unmount } = renderShell();
+    expect(inset()).toBe('3.75rem');
+
+    await openMenu();
+    expect(inset()).toBe('min(18rem, 88vw)');
+
+    unmount();
+    expect(inset()).toBe('');
   });
 });

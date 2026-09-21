@@ -99,7 +99,7 @@ describe('<UsersPage />', () => {
     await userEvent.type(within(dialog).getByLabelText('Nombre'), 'Marta Ruiz');
     await userEvent.type(within(dialog).getByLabelText('Correo electrónico'), 'marta@example.com');
     await userEvent.type(within(dialog).getByLabelText('Contraseña inicial'), 'Segura#12345');
-    await userEvent.selectOptions(within(dialog).getByLabelText('Rol'), 'manager');
+    await userEvent.click(within(dialog).getByRole('radio', { name: 'Gerente' }));
     await userEvent.click(within(dialog).getByRole('button', { name: 'Crear usuario' }));
 
     await waitFor(() => expect(api.callsTo('POST /api/v1/users')).toHaveLength(1));
@@ -147,7 +147,7 @@ describe('<UsersPage />', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Editar usuario' });
     expect(within(dialog).getByLabelText('Correo electrónico')).toBeDisabled();
     expect(within(dialog).queryByLabelText('Contraseña inicial')).not.toBeInTheDocument();
-    await userEvent.selectOptions(within(dialog).getByLabelText('Rol'), 'manager');
+    await userEvent.click(within(dialog).getByRole('radio', { name: 'Gerente' }));
     await userEvent.click(within(dialog).getByRole('button', { name: 'Guardar cambios' }));
 
     await waitFor(() => expect(api.callsTo('PATCH /api/v1/users/u-1')).toHaveLength(1));
@@ -159,6 +159,40 @@ describe('<UsersPage />', () => {
     expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
       /actualizado correctamente/,
     );
+  });
+
+  it('el estado del usuario se cambia con un interruptor', async () => {
+    const api = setupApi({ 'PATCH /api/v1/users/u-1': () => ({ json: ana }) });
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Editar a Ana Pérez' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Editar usuario' });
+    const toggle = within(dialog).getByRole('switch', { name: 'Usuario activo' });
+    expect(toggle).toBeChecked();
+
+    await userEvent.click(toggle);
+    expect(within(dialog).getByRole('switch', { name: 'Usuario deshabilitado' })).not.toBeChecked();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Guardar cambios' }));
+
+    await waitFor(() => expect(api.callsTo('PATCH /api/v1/users/u-1')).toHaveLength(1));
+    expect(api.callsTo('PATCH /api/v1/users/u-1')[0].body).toMatchObject({ status: 'disabled' });
+  });
+
+  it('el rol se elige con chips (uno solo a la vez)', async () => {
+    setupApi();
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Editar a Ana Pérez' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Editar usuario' });
+    const group = within(dialog).getByRole('group', { name: 'Rol' });
+
+    expect(within(group).getAllByRole('radio')).toHaveLength(3);
+    expect(within(group).getByRole('radio', { name: 'Consulta' })).toBeChecked();
+    await userEvent.click(within(group).getByText('Administrador'));
+    expect(within(group).getByRole('radio', { name: 'Administrador' })).toBeChecked();
+    expect(within(group).getByRole('radio', { name: 'Consulta' })).not.toBeChecked();
   });
 
   it('elimina un usuario tras confirmar', async () => {

@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
@@ -21,13 +21,14 @@ import { Avatar } from '@/components';
 import { config } from '@/config/env';
 import { APP_VERSION } from '@/config/version';
 import { palette } from '@/theme/palette';
+import { layout } from '@/theme/tokens';
 import { isLinkActive } from './navigation';
 import type { NavGroup, NavItem, NavLink } from './navigation';
 
 export const SIDEBAR_ID = 'menu-lateral';
 /** Ancho del riel (solo iconos) y del menú extendido. */
-const RAIL_WIDTH = '3.75rem';
-const FULL_WIDTH = 'min(18rem, 88vw)';
+const RAIL_WIDTH = layout.railWidth;
+const FULL_WIDTH = layout.sidebarWidth;
 const { sidebar } = palette;
 
 interface SidebarProps {
@@ -52,8 +53,13 @@ const rowSx = (active: boolean) => ({
   px: '1.125rem',
   whiteSpace: 'nowrap',
   color: active ? sidebar.activeText : sidebar.text,
+  // Ítem activo con el degradado de marca (color plano de respaldo si el degradado no carga).
   backgroundColor: active ? sidebar.activeBackground : 'transparent',
-  '&:hover': { backgroundColor: active ? sidebar.activeBackground : sidebar.hover },
+  backgroundImage: active ? sidebar.activeGradient : 'none',
+  '&:hover': {
+    backgroundColor: active ? sidebar.activeBackground : sidebar.hover,
+    backgroundImage: active ? sidebar.activeGradient : 'none',
+  },
   '&.Mui-focusVisible': { outline: `2px solid ${sidebar.activeText}`, outlineOffset: -2 },
   '& .MuiListItemIcon-root': {
     minWidth: '2.5rem',
@@ -89,6 +95,15 @@ function RailTooltip({
 export function Sidebar({ open, onOpenChange, user, items, onLogout }: SidebarProps) {
   const { pathname } = useLocation();
   const compact = useMediaQuery(useTheme().breakpoints.down('sm'));
+
+  // Publica el ancho que ocupa el menú EN EL FLUJO (en xs, extendido, se superpone y no empuja).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty(layout.sidebarInsetVar, open && !compact ? FULL_WIDTH : RAIL_WIDTH);
+    return () => {
+      root.style.removeProperty(layout.sidebarInsetVar);
+    };
+  }, [open, compact]);
 
   /** En pantallas pequeñas el menú se repliega al elegir; en grandes se queda como está. */
   const handleNavigate = () => {

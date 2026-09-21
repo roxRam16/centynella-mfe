@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
 import {
   Alert,
   Button,
+  ChipSelect,
   Dialog,
   PasswordField,
   PasswordRequirements,
-  Select,
+  Switch,
   TextField,
 } from '@/components';
 import type { SelectOption } from '@/components';
@@ -20,11 +21,6 @@ import type { z } from 'zod';
 
 type CreateForm = z.infer<typeof userCreateSchema>;
 type EditForm = z.infer<typeof userEditSchema>;
-
-const STATUS_OPTIONS: SelectOption[] = [
-  { value: 'active', label: 'Activo' },
-  { value: 'disabled', label: 'Deshabilitado' },
-];
 
 interface UserFormDialogProps {
   open: boolean;
@@ -116,14 +112,32 @@ export function UserFormDialog({ open, user, roleOptions, onClose, onSaved }: Us
           />
         )}
         {!isEdit && <PasswordRequirements password={password} />}
-        <Select
-          label="Rol"
-          options={roleOptions}
-          placeholder="Selecciona un rol"
-          error={errors.role?.message}
-          {...register('role')}
+        <Controller
+          name="role"
+          control={control}
+          render={({ field }) => (
+            <ChipSelect
+              label="Rol"
+              options={roleOptions}
+              value={field.value}
+              onChange={field.onChange}
+              error={errors.role?.message}
+            />
+          )}
         />
-        <Select label="Estado" options={STATUS_OPTIONS} {...register('status')} />
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <Switch
+              inputRef={field.ref}
+              checked={field.value === 'active'}
+              onChange={(event) => field.onChange(event.target.checked ? 'active' : 'disabled')}
+              onBlur={field.onBlur}
+              label={field.value === 'active' ? 'Usuario activo' : 'Usuario deshabilitado'}
+            />
+          )}
+        />
       </Stack>
     </Dialog>
   );

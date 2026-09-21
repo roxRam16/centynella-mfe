@@ -83,22 +83,40 @@ export const palette = {
     textPlaceholder: '#666D7B', // ≥ 4.5:1 sobre blanco Y sobre el fondo lightBlue
     disabled: '#9AA0AE',
   },
+  // Degradados de marca ("estética IA"): todo lo interactivo relleno los usa en lugar de un color plano.
+  // Los extremos de cada degradado dan ≥ 4.5:1 con texto blanco (ver palette.test.ts).
+  gradient: {
+    primary: `linear-gradient(135deg, ${brand.blue} 0%, ${brand.violet} 100%)`,
+    primaryHover: `linear-gradient(135deg, #4A46F5 0%, ${brand.violet} 100%)`,
+    primaryPressed: 'linear-gradient(135deg, #1E1AB8 0%, #5B3DB5 100%)',
+    secondary: `linear-gradient(135deg, ${brand.violet} 0%, #5B3DB5 100%)`,
+    secondaryHover: `linear-gradient(135deg, ${brand.violet} 0%, ${brand.blue} 100%)`,
+    secondaryPressed: 'linear-gradient(135deg, #5B3DB5 0%, #1E1AB8 100%)',
+    danger: 'linear-gradient(135deg, #B91C1C 0%, #7F1D1D 100%)',
+    dangerHover: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)',
+    dangerPressed: 'linear-gradient(135deg, #7F1D1D 0%, #5C1515 100%)',
+    /** Fondo suave de chips sin seleccionar (texto oscuro encima: ≥ 8:1). */
+    soft: `linear-gradient(135deg, ${brand.lightBlue} 0%, ${brand.lightPink} 100%)`,
+    /** Resplandor de los elementos con degradado al pasar el cursor. */
+    glow: '0 6px 20px rgba(125, 88, 224, 0.45)',
+  },
   // Encabezado del shell: degradado de marca Blue → Violet (nunca el azul solo).
   // Ambos extremos dan ≥ 4.5:1 con texto blanco (ver palette.test.ts).
   header: {
     gradient: `linear-gradient(90deg, ${brand.blue} 0%, ${brand.violet} 100%)`,
     text: '#FFFFFF',
   },
-  // Menú lateral: negro SUAVE (no #000) para que descanse la vista y combine con el degradado.
+  // Menú lateral: NEGRO profundo con un leve tinte azul (no #000 puro) para que combine con el degradado.
   /** Barras de desplazamiento: pulgar (fondo claro) y pulgar sobre el menú oscuro. */
   scrollbar: { thumb: brand.iris, thumbOnDark: 'rgba(255, 255, 255, 0.28)' },
   sidebar: {
-    background: '#1F2430',
+    background: '#0A0A12',
     hover: 'rgba(255, 255, 255, 0.07)',
     border: 'rgba(255, 255, 255, 0.10)',
     text: '#E7E9F0',
     textMuted: '#A9AFC0',
     activeBackground: brand.violet, // ítem seleccionado (texto blanco: 4.83:1)
+    activeGradient: `linear-gradient(135deg, ${brand.blue} 0%, ${brand.violet} 100%)`,
     activeText: '#FFFFFF',
     badgeWarning: '#F59E0B', // insignia SANDBOX
   },

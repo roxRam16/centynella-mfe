@@ -32,7 +32,7 @@ const ICONS = {
 
 const enter = {
   '@keyframes toast-enter': {
-    from: { opacity: 0, transform: 'translateY(0.75rem)' },
+    from: { opacity: 0, transform: 'translateX(-1rem)' },
     to: { opacity: 1, transform: 'none' },
   },
   animation: 'toast-enter 200ms ease-out',

@@ -121,4 +121,51 @@ describe('palette (accesibilidad WCAG AA)', () => {
       AA_LARGE_TEXT,
     );
   });
+
+  it('todos los degradados con texto blanco son legibles en AMBOS extremos', () => {
+    const stops = {
+      primary: [brand.blue, brand.violet],
+      primaryHover: ['#4A46F5', brand.violet],
+      primaryPressed: ['#1E1AB8', '#5B3DB5'],
+      secondary: [brand.violet, '#5B3DB5'],
+      secondaryHover: [brand.violet, brand.blue],
+      secondaryPressed: ['#5B3DB5', '#1E1AB8'],
+      danger: ['#B91C1C', '#7F1D1D'],
+      dangerHover: ['#DC2626', '#991B1B'],
+      dangerPressed: ['#7F1D1D', '#5C1515'],
+    } as const;
+
+    for (const [name, [from, to]] of Object.entries(stops)) {
+      const gradient = palette.gradient[name as keyof typeof stops];
+      expect(gradient, name).toContain(from);
+      expect(gradient, name).toContain(to);
+      expect(contrastRatio('#FFFFFF', from), `${name} ${from}`).toBeGreaterThanOrEqual(
+        AA_NORMAL_TEXT,
+      );
+      expect(contrastRatio('#FFFFFF', to), `${name} ${to}`).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    }
+  });
+
+  it('el degradado suave de los chips deja el texto oscuro legible en sus dos extremos', () => {
+    for (const end of [brand.lightBlue, brand.lightPink]) {
+      expect(palette.gradient.soft).toContain(end);
+      expect(contrastRatio(palette.neutral.textPrimary, end)).toBeGreaterThanOrEqual(
+        AA_NORMAL_TEXT,
+      );
+    }
+  });
+
+  it('el ítem activo del menú lateral usa el degradado de marca con texto blanco legible', () => {
+    expect(palette.sidebar.activeGradient).toBe(palette.gradient.primary);
+    expect(contrastRatio(palette.sidebar.activeText, brand.blue)).toBeGreaterThanOrEqual(
+      AA_NORMAL_TEXT,
+    );
+    expect(contrastRatio(palette.sidebar.activeText, brand.violet)).toBeGreaterThanOrEqual(
+      AA_NORMAL_TEXT,
+    );
+  });
+
+  it('el menú lateral es casi negro', () => {
+    expect(palette.sidebar.background).toBe('#0A0A12');
+  });
 });

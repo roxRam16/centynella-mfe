@@ -22,13 +22,26 @@ export const elevation = {
 
 export type ElevationLevel = keyof typeof elevation;
 
-/** Familia tipográfica de marca (Poppins, ver mockups/style_fonts.png) con respaldo de sistema. */
-export const fontFamily = [
-  '"Poppins"',
-  'system-ui',
-  '-apple-system',
-  '"Segoe UI"',
-  'Roboto',
-  'Arial',
-  'sans-serif',
-].join(',');
+const systemFonts = ['system-ui', '-apple-system', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'];
+
+/** Familia de texto y controles (Poppins, ver mockups/style_fonts.png) con respaldo de sistema. */
+export const fontFamily = ['"Poppins"', ...systemFonts].join(',');
+
+/**
+ * Familia "display" para títulos y botones: Raleway, de trazo fino y elegante, que da el aire
+ * moderno/tecnológico. Se combina con Poppins (texto) para que el contenido siga siendo legible.
+ */
+export const fontFamilyDisplay = ['"Raleway"', ...systemFonts].join(',');
+
+/** Medidas del marco del shell (menú lateral) que comparten el menú y las notificaciones. */
+export const layout = {
+  /** Ancho del menú lateral colapsado (riel de iconos). */
+  railWidth: '3.75rem',
+  /** Ancho del menú lateral extendido (nunca más del 88 % de una pantalla pequeña). */
+  sidebarWidth: 'min(18rem, 88vw)',
+  /**
+   * Variable CSS con el ancho ACTUAL del menú lateral (lo publica el menú). Las notificaciones la
+   * leen para no taparlo, sin acoplarse a él. Sin menú (login) vale el riel.
+   */
+  sidebarInsetVar: '--shell-sidebar-inset',
+} as const;

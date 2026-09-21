@@ -25,6 +25,10 @@ export { Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
 export { Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';
+export { Switch } from './Switch';
+export type { SwitchProps } from './Switch';
+export { ChipSelect } from './ChipSelect';
+export type { ChipSelectOption, ChipSelectProps } from './ChipSelect';
 
 // Feedback y estados
 export { Alert } from './Alert';

@@ -39,6 +39,8 @@ export function Chip({ label, tone = 'neutral', icon, onDelete }: ChipProps) {
       variant="outlined"
       sx={{
         backgroundColor: bg,
+        // Los chips de marca llevan el degradado suave (iris tenue → rosa lavanda).
+        backgroundImage: tone === 'primary' ? palette.gradient.soft : 'none',
         color: fg,
         borderColor: border,
         '& .MuiChip-icon, & .MuiChip-deleteIcon': { color: fg },

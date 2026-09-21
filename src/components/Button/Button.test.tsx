@@ -41,6 +41,14 @@ describe('<Button />', () => {
     expect(screen.getByRole('button', { name: 'Guardar' })).toBeInTheDocument();
   });
 
+  it('los botones rellenos se ven con degradado de fondo', () => {
+    renderButton(<Button>Guardar</Button>);
+
+    expect(getComputedStyle(screen.getByRole('button')).backgroundImage).toContain(
+      'linear-gradient',
+    );
+  });
+
   it('la acción destructiva usa el color de error', () => {
     renderButton(<Button danger>Eliminar</Button>);
 

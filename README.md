@@ -113,7 +113,7 @@ El remote debe: exponer `./App` (componente React por `default`), compartir las 
 Prototipo: `mockups/mockup.png`. El shell ([ShellLayout.tsx](src/layouts/ShellLayout.tsx)) dibuja **todo el marco**; un remote solo aporta su contenido.
 
 - **Encabezado:** degradado de marca Blue → Violet (`palette.header.gradient`), con logo y menú de usuario. Texto blanco con contraste AA sobre ambos extremos.
-- **Menú lateral** ([Sidebar.tsx](src/layouts/Sidebar.tsx)): negro suave `#1F2430` (nunca `#000`) con **dos estados**: _riel_ angosto solo con iconos (siempre visible, con tooltip y `aria-label`) y _extendido_ (usuario, textos, grupos desplegables, perfil, cerrar sesión, ambiente SANDBOX y versión). Al extenderse **empuja el contenido** (no lo tapa); solo en pantallas muy pequeñas (xs) se superpone con un velo y se repliega al elegir una opción. Se alterna con el botón de hamburguesa/X del propio menú; Esc lo colapsa; tocar un grupo en el riel lo extiende con el grupo abierto. Ítem activo en violet con `aria-current="page"`.
+- **Menú lateral** ([Sidebar.tsx](src/layouts/Sidebar.tsx)): casi negro `#0A0A12` (con un leve tinte azul, no `#000` puro) con **dos estados**: _riel_ angosto solo con iconos (siempre visible, con tooltip y `aria-label`) y _extendido_ (usuario, textos, grupos desplegables, perfil, cerrar sesión, ambiente SANDBOX y versión). Al extenderse **empuja el contenido** (no lo tapa); solo en pantallas muy pequeñas (xs) se superpone con un velo y se repliega al elegir una opción. Se alterna con el botón de hamburguesa/X del propio menú; Esc lo colapsa; tocar un grupo en el riel lo extiende con el grupo abierto. Ítem activo con el degradado de marca y `aria-current="page"`.
 - **Navegación** ([navigation.tsx](src/layouts/navigation.tsx)): `buildNavigation(remotes, hasPermission)` arma "Inicio", un enlace por remote registrado y el grupo "Administración" filtrado por permisos. Ocultar un enlace no es seguridad: el backend valida cada petición.
 - **Un remote:** se renderiza dentro de `<main>` (con `Suspense` + `ErrorBoundary`), **no dibuja su propio encabezado ni menú**, usa componentes de la librería y solo los tokens del tema. Al registrarlo en `remoteRegistry` aparece solo en el menú.
 
@@ -129,7 +129,7 @@ toast.error(getErrorMessage(error), { title: 'No se pudo eliminar el usuario' })
 ```
 
 - **Cuándo usarlo:** confirmar acciones (crear, editar, eliminar, guardar, cambiar contraseña) y errores de acciones puntuales. Los errores de un formulario van en línea dentro del formulario y los de carga de una pantalla en un `Alert` con "Reintentar".
-- **Comportamiento:** abajo a la derecha (abajo y a todo lo ancho en móvil), por encima de los modales; máx. 4 a la vez; un aviso repetido reemplaza al anterior; se cierra solo (éxito/info 5 s, aviso 7 s, error 8 s) o con la X, y se **pausa** con el cursor o el foco encima.
+- **Comportamiento:** abajo a la **izquierda**, junto al menú lateral (se corre solo cuando el menú se extiende, vía la variable CSS `--shell-sidebar-inset`), por encima de los modales; máx. 4 a la vez; un aviso repetido reemplaza al anterior; se cierra solo (éxito/info 5 s, aviso 7 s, error 8 s) o con la X, y se **pausa** con el cursor o el foco encima.
 - **Accesibilidad:** icono + color + texto (nunca solo color); dos regiones vivas permanentes (`polite` para éxito/info/aviso, `assertive` para errores); respeta `prefers-reduced-motion`.
 - **Remotes:** usan el mismo `useToast` (el contexto lo aporta el shell).
 - En pruebas, `renderWithProviders` ya incluye el proveedor; usa `notifications()` de [test/toasts.ts](src/test/toasts.ts) para aserciones.
@@ -139,7 +139,8 @@ toast.error(getErrorMessage(error), { title: 'No se pudo eliminar el usuario' })
 Fuentes (carpeta `mockups/`, solo referencia): `login.png` (pantalla de acceso), `styles.jpg` (paleta), `style_fonts.png` (tipografía) y `style_guide.jpg` (componentes, estados, espaciado). Todo el proyecto los toma **solo de `src/theme/`** — nunca colores ni medidas sueltas.
 
 - **Paleta** ([palette.ts](src/theme/palette.ts)): esquema monocromático azul + iris — Blue `#2D28F3` (primario), Iris `#6E6DF8`, Violet `#7D58E0` (acento), Light pink `#D1CFF7`, Light blue `#EEF3F9` (fondo), Dark gray `#2B3037` (texto). Regla 60-30-10.
-- **Tipografía:** **Poppins** (400 · 500 · 600 · 700) autoalojada con `@fontsource` (sin CDN). Escala: H1 32 · H2 24 · Subtítulo 18 · Cuerpo 16/14 · Caption 12 · Botón 14 semibold.
+- **Tipografía:** combinación **Raleway** (títulos H1-H3, subtítulos y botones; 600 · 700 · 800) + **Poppins** (texto y formularios; 400 · 500 · 600 · 700), ambas autoalojadas con `@fontsource` (sin CDN). Escala compacta: H1 24-28 · H2 18-22 · H3 16 · Cuerpo 14/13 · Caption 12 · Botón 14 bold.
+- **Degradados (estética IA):** todo lo interactivo relleno usa los degradados de `palette.gradient` (Blue → Violet): botones (primario, secundario y de peligro, con hover más claro + resplandor y pressed más oscuro; el de contorno lleva el borde en degradado), ítem activo del menú, pestañas, paginación, interruptores y chips. Cada extremo de un degradado con texto blanco cumple ≥ 4.5:1 (probado en `palette.test.ts`); el degradado suave de los chips sin seleccionar lleva texto oscuro.
 - **Tokens** ([tokens.ts](src/theme/tokens.ts)): espaciado 4·8·16·24·32·48, radios (0·4·8·16·píldora) y elevación 0-3 con sombra teñida de azul.
 - **Estados** (guía): botones Normal → Hover (más claro) → Pressed (más oscuro); campo con foco violet + halo iris; error rojo; alertas con fondo tenue + borde + icono.
 - **Atributos preatentivos:** color semántico (verde/ámbar/rojo/azul), tamaño y peso para jerarquía; el estado **nunca** va solo en color (siempre icono + texto).
@@ -152,13 +153,13 @@ Fuentes (carpeta `mockups/`, solo referencia): `login.png` (pantalla de acceso),
 
 Importa **siempre** de `@/components`, nunca de MUI en las pantallas. Cada componente: carpeta propia + `index.ts` + prueba. Antes de crear uno nuevo, revisa si ya existe.
 
-| Grupo              | Componentes                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------------ |
-| Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `GoogleButton`, `Link` |
-| Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox` (compatibles con `react-hook-form`)                 |
-| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                         |
-| Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `Pagination`, `PageHeader`                             |
-| Identidad          | `Logo`, `Avatar`                                                                                       |
+| Grupo              | Componentes                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `GoogleButton`, `Link`         |
+| Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox`, `Switch`, `ChipSelect` (compatibles con `react-hook-form`) |
+| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                                 |
+| Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `Pagination`, `PageHeader`                                     |
+| Identidad          | `Logo`, `Avatar`                                                                                               |
 
 ## Autenticación y sesión
 
@@ -280,6 +281,15 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 
 ## Historial de cambios
 
+### 21-sep-2026 — Tema futurista: degradados, Raleway, menú negro y nuevos controles
+
+- Botones con degradado (primario, secundario, peligro y contorno), además de pestañas, paginación e ítem activo del menú; chips de marca con degradado suave.
+- Tipografía: Raleway en títulos y botones combinada con Poppins en el texto; escala de tamaños más compacta.
+- Menú lateral casi negro (`#0A0A12`).
+- Componentes nuevos `Switch` (interruptor con pista en degradado) y `ChipSelect` (selección única con chips redondeados): en el diálogo de usuario el rol se elige con chips y el estado con un interruptor.
+- Notificaciones a la izquierda, junto al menú y sin taparlo.
+- 431 pruebas, cobertura ~96 %.
+
 ### 21-sep-2026 — Notificaciones (toasts)
 
 - Componente `Toast` + `ToastProvider` + hook `useToast`: avisos con icono y color, cierre automático con pausa al pasar el cursor, apilado máximo y regiones vivas accesibles.
@@ -303,7 +313,7 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 ### 21-sep-2026 — Shell según el mockup: encabezado degradado y menú lateral (V.0.0.2)
 
 - Encabezado con degradado Blue → Violet en lugar de azul sólido.
-- Menú lateral negro suave (primera versión: cajón oculto); navegación generada desde `remoteRegistry` y permisos, con grupo "Administración" desplegable.
+- Menú lateral oscuro (primera versión: cajón oculto); navegación generada desde `remoteRegistry` y permisos, con grupo "Administración" desplegable.
 - Tokens nuevos `header` y `sidebar` en `palette.ts` con pruebas de contraste AA.
 - 381 pruebas, cobertura ~96 %.
 
