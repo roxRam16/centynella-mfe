@@ -26,6 +26,7 @@ Raíz: `private/` (los `.env.sandbox` / `.env.production`, NO en la raíz), `pub
 - **Versión:** sale de `package.json` (`APP_VERSION`); el hook `pre-commit` la sube una vez por push (no editar `package-lock.json` a mano). Login: `Sistema de inventario IA 2025 - V.x.y.z`.
 - **Seguridad de entradas:** validar con `utils/validation.ts` (correo con `@`, contraseña mayúscula/minúscula/número/símbolo, nombres/textos sin `< >`), `maxLength` en los inputs, NUNCA `dangerouslySetInnerHTML`. Toda pantalla de error usa `StatusPage`; URLs desconocidas → 404 amable. La CSP vive en `nginx/`.
 - **Formularios:** `react-hook-form` + `zod` (`utils/validation.ts`, mismas reglas que el backend); errores del backend traducidos con `getErrorMessage`.
+- **Shell (mockup.png):** encabezado con degradado Blue→Violet (`palette.header`), menú lateral negro suave (`palette.sidebar`) OCULTO por defecto; los remotes solo renderizan su contenido dentro de `<main>` y se agregan solos al menú desde `remoteRegistry` (`layouts/navigation.tsx`).
 - **Federation:** los remotes se declaran en `VITE_REMOTES` y en `src/federation/remoteRegistry.ts`; el bloque `shared` de `federation.config.ts` debe ser idéntico en host y remotes.
 - **Env:** solo en `private/` (ignorado por git). `VITE_*` es público: nunca secretos.
 - **Tests antes de desplegar**, cobertura ≥ 80 %. Cada componente/hook/servicio con su `*.test.ts(x)`.

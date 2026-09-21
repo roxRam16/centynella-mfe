@@ -1,28 +1,45 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
+import type { RemoteDefinition } from '@/federation';
+import { palette } from '@/theme/palette';
 import { makeProfile } from '@/test/factories';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { AuthLayout } from './AuthLayout';
 import { ShellLayout } from './ShellLayout';
 
-const renderShell = (auth = {}) =>
+const inventory: RemoteDefinition = {
+  id: 'inventory',
+  label: 'Inventario',
+  path: '/inventory',
+  loader: async () => ({ default: () => null }),
+};
+
+const renderShell = (
+  options: {
+    auth?: Record<string, unknown>;
+    remotes?: readonly RemoteDefinition[];
+    route?: string;
+  } = {},
+) =>
   renderWithProviders(
     <Routes>
-      <Route element={<ShellLayout />}>
+      <Route element={<ShellLayout remotes={options.remotes} />}>
         <Route index element={<p>contenido inicio</p>} />
         <Route path="/profile" element={<p>contenido perfil</p>} />
+        <Route path="/admin/users" element={<p>contenido usuarios</p>} />
       </Route>
     </Routes>,
-    { auth },
+    { auth: options.auth, route: options.route },
   );
 
-describe('<ShellLayout />', () => {
+const openMenu = () => userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+
+describe('<ShellLayout /> — encabezado', () => {
   it('tiene la estructura semántica y un enlace para saltar al contenido', () => {
     renderShell();
 
     expect(screen.getByRole('banner')).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: 'Principal' })).toBeInTheDocument();
     expect(screen.getByRole('main')).toHaveTextContent('contenido inicio');
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Saltar al contenido' })).toHaveAttribute(
@@ -31,28 +48,21 @@ describe('<ShellLayout />', () => {
     );
   });
 
+  it('usa el degradado de marca (Blue → Violet), no un azul sólido', () => {
+    renderShell();
+
+    const header = screen.getByRole('banner');
+    expect(getComputedStyle(header).backgroundImage).toContain('linear-gradient');
+    expect(palette.header.gradient).toContain('#2D28F3');
+    expect(palette.header.gradient).toContain('#7D58E0');
+  });
+
   it('el pie muestra el ambiente y la versión', () => {
     renderShell();
 
     expect(screen.getByRole('contentinfo')).toHaveTextContent(
       /ambiente sandbox · V\.\d+\.\d+\.\d+/,
     );
-  });
-
-  it('muestra los enlaces de administración según los permisos', () => {
-    renderShell();
-
-    expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute('href', '/admin/users');
-    expect(screen.getByRole('link', { name: 'Roles' })).toHaveAttribute('href', '/admin/roles');
-    expect(screen.getByRole('link', { name: 'Bitácora' })).toHaveAttribute('href', '/admin/logs');
-  });
-
-  it('oculta los enlaces para quien no tiene los permisos', () => {
-    renderShell({ user: makeProfile({ permissions: [] }) });
-
-    expect(screen.getByRole('link', { name: 'Inicio' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Usuarios' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Roles' })).not.toBeInTheDocument();
   });
 
   it('el menú de usuario lleva al perfil', async () => {
@@ -71,6 +81,158 @@ describe('<ShellLayout />', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }));
 
     expect(auth.logout).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('<ShellLayout /> — menú lateral (oculto por defecto)', () => {
+  it('está oculto al cargar: no hay navegación en pantalla', () => {
+    renderShell();
+
+    expect(screen.queryByRole('navigation', { name: 'Principal' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Inicio' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Abrir menú' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+  });
+
+  it('se abre con el botón de menú y muestra usuario, navegación, ambiente y versión', async () => {
+    renderShell();
+
+    await openMenu();
+
+    const menu = await screen.findByRole('dialog', { name: 'Menú principal' });
+    expect(within(menu).getByText('Admin Principal')).toBeInTheDocument();
+    expect(within(menu).getByText('admin')).toBeInTheDocument();
+    expect(within(menu).getByRole('navigation', { name: 'Principal' })).toBeInTheDocument();
+    expect(within(menu).getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(within(menu).getByText('SANDBOX')).toBeInTheDocument();
+    expect(within(menu).getByText(/^v\d+\.\d+\.\d+$/)).toBeInTheDocument();
+    // Con el modal abierto el resto de la página queda oculto a los lectores de pantalla (a propósito).
+    expect(screen.getByRole('button', { name: 'Abrir menú', hidden: true })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('se cierra con la X', async () => {
+    renderShell();
+    await openMenu();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cerrar menú' }));
+
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Menú principal' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('se cierra con la tecla Escape', async () => {
+    renderShell();
+    await openMenu();
+    await screen.findByRole('dialog', { name: 'Menú principal' });
+
+    await userEvent.keyboard('{Escape}');
+
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Menú principal' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('la administración es un grupo desplegable, oculto hasta abrirlo', async () => {
+    renderShell();
+    await openMenu();
+    const menu = await screen.findByRole('dialog', { name: 'Menú principal' });
+
+    const group = within(menu).getByRole('button', { name: 'Administración' });
+    expect(group).toHaveAttribute('aria-expanded', 'false');
+    expect(within(menu).queryByRole('link', { name: 'Usuarios' })).not.toBeInTheDocument();
+
+    await userEvent.click(group);
+
+    expect(group).toHaveAttribute('aria-expanded', 'true');
+    expect(within(menu).getByRole('link', { name: 'Usuarios' })).toHaveAttribute(
+      'href',
+      '/admin/users',
+    );
+    expect(within(menu).getByRole('link', { name: 'Roles y permisos' })).toHaveAttribute(
+      'href',
+      '/admin/roles',
+    );
+    expect(within(menu).getByRole('link', { name: 'Bitácora' })).toHaveAttribute(
+      'href',
+      '/admin/logs',
+    );
+  });
+
+  it('el grupo ya viene abierto cuando la página actual es una de sus opciones', async () => {
+    renderShell({ route: '/admin/users' });
+    await openMenu();
+
+    const menu = await screen.findByRole('dialog', { name: 'Menú principal' });
+    expect(within(menu).getByRole('button', { name: 'Administración' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    expect(within(menu).getByRole('link', { name: 'Usuarios' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('oculta la administración a quien no tiene permisos', async () => {
+    renderShell({ auth: { user: makeProfile({ permissions: [] }) } });
+    await openMenu();
+
+    const menu = await screen.findByRole('dialog', { name: 'Menú principal' });
+    expect(within(menu).getByRole('link', { name: 'Inicio' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('button', { name: 'Administración' })).not.toBeInTheDocument();
+  });
+
+  it('lista los microfrontends registrados', async () => {
+    renderShell({ remotes: [inventory] });
+    await openMenu();
+
+    const menu = await screen.findByRole('dialog', { name: 'Menú principal' });
+    expect(within(menu).getByRole('link', { name: 'Inventario' })).toHaveAttribute(
+      'href',
+      '/inventory',
+    );
+  });
+
+  it('al elegir una opción navega y cierra el menú', async () => {
+    renderShell();
+    await openMenu();
+
+    await userEvent.click(await screen.findByRole('link', { name: 'Mi perfil' }));
+
+    expect(await screen.findByText('contenido perfil')).toBeInTheDocument();
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Menú principal' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('Cerrar sesión del menú cierra el menú y la sesión', async () => {
+    const { auth } = renderShell();
+    await openMenu();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cerrar sesión' }));
+
+    expect(auth.logout).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Menú principal' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('el fondo del menú es un negro suave (no #000)', async () => {
+    renderShell();
+    await openMenu();
+
+    const menu = await screen.findByRole('dialog', { name: 'Menú principal' });
+    expect(getComputedStyle(menu).backgroundColor).not.toBe('rgb(0, 0, 0)');
+    expect(palette.sidebar.background).toBe('#1F2430');
   });
 });
 

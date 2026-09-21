@@ -1,6 +1,6 @@
 {
   "name": "centynella-mfe",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "description": "CENTYNELLA-MFE: shell (host) de Module Federation para la administración y gestión de inventarios.",

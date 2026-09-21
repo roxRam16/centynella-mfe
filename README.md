@@ -41,7 +41,7 @@ centynella-mfe/
 │   ├── context/            # AuthProvider: sesión del usuario (única fuente de verdad)
 │   ├── federation/         # Registro de remotes, RemoteModule (Suspense + ErrorBoundary)
 │   ├── hooks/              # useAuth, useAsyncResource, useDebouncedValue, useApiHealth
-│   ├── layouts/            # ShellLayout (app) y AuthLayout (login/registro)
+│   ├── layouts/            # ShellLayout + Sidebar + navigation (app) y AuthLayout (login/registro)
 │   ├── pages/              # Pantallas: inicio, perfil, errores (StatusPage), auth/, admin/
 │   ├── routes/             # Enrutado y guardias (RequireAuth, PublicOnly, RequirePermission)
 │   ├── services/           # apiClient, httpClient, tokenStore y servicios de auth/usuarios/roles
@@ -107,6 +107,15 @@ Viven en `private/` (Vite: `envDir: 'private'`), una por ambiente: `.env.sandbox
 4. El shell genera solo la ruta (`/inventory/*`) y el enlace en la navegación.
 
 El remote debe: exponer `./App` (componente React por `default`), compartir las mismas dependencias singleton y usar `basename` acorde a su ruta.
+
+## Cómo se ve un microfrontend (layout del shell)
+
+Prototipo: `mockups/mockup.png`. El shell ([ShellLayout.tsx](src/layouts/ShellLayout.tsx)) dibuja **todo el marco**; un remote solo aporta su contenido.
+
+- **Encabezado:** degradado de marca Blue → Violet (`palette.header.gradient`), con botón de menú, logo y menú de usuario. Texto blanco con contraste AA sobre ambos extremos.
+- **Menú lateral** ([Sidebar.tsx](src/layouts/Sidebar.tsx)): negro suave `#1F2430` (nunca `#000`), **oculto por defecto**; se abre con el botón de menú (cajón modal: foco atrapado, se cierra con Esc, la X o clic fuera, y al elegir una opción). Muestra usuario, navegación con grupos desplegables, perfil, cerrar sesión, ambiente (SANDBOX) y versión. Ítem activo en violet con `aria-current="page"`.
+- **Navegación** ([navigation.tsx](src/layouts/navigation.tsx)): `buildNavigation(remotes, hasPermission)` arma "Inicio", un enlace por remote registrado y el grupo "Administración" filtrado por permisos. Ocultar un enlace no es seguridad: el backend valida cada petición.
+- **Un remote:** se renderiza dentro de `<main>` (con `Suspense` + `ErrorBoundary`), **no dibuja su propio encabezado ni menú**, usa componentes de la librería y solo los tokens del tema. Al registrarlo en `remoteRegistry` aparece solo en el menú.
 
 ## Sistema de diseño
 
@@ -252,6 +261,13 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 21-sep-2026 — Shell según el mockup: encabezado degradado y menú lateral oculto (V.0.0.2)
+
+- Encabezado con degradado Blue → Violet en lugar de azul sólido.
+- Menú lateral negro suave, oculto por defecto y abierto desde un botón de menú; navegación generada desde `remoteRegistry` y permisos, con grupo "Administración" desplegable.
+- Tokens nuevos `header` y `sidebar` en `palette.ts` con pruebas de contraste AA.
+- 381 pruebas, cobertura ~96 %.
 
 ### 20-sep-2026 — Bitácora, seguridad de entradas, pantallas de error y versionado (V.0.0.1)
 

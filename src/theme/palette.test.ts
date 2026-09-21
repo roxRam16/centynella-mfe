@@ -93,4 +93,23 @@ describe('palette (accesibilidad WCAG AA)', () => {
       AA_LARGE_TEXT,
     );
   });
+
+  it('el texto blanco del encabezado es legible en TODO el degradado (Blue → Violet)', () => {
+    const { text: headerText } = palette.header;
+    expect(contrastRatio(headerText, brand.blue)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    expect(contrastRatio(headerText, brand.violet)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    expect(palette.header.gradient).toContain(brand.blue);
+    expect(palette.header.gradient).toContain(brand.violet);
+  });
+
+  it('el menú lateral es un negro suave y su texto y sus estados son legibles', () => {
+    const { background, text: main, textMuted, activeBackground, activeText } = palette.sidebar;
+    expect(background).not.toBe('#000000');
+    expect(contrastRatio(main, background)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    expect(contrastRatio(textMuted, background)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    expect(contrastRatio(activeText, activeBackground)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    expect(contrastRatio(palette.sidebar.badgeWarning, background)).toBeGreaterThanOrEqual(
+      AA_LARGE_TEXT,
+    );
+  });
 });

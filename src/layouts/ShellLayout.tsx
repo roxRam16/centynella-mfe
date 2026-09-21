@@ -1,10 +1,13 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
+import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import LogoutIcon from '@mui/icons-material/LogoutOutlined';
+import MenuIcon from '@mui/icons-material/Menu';
 import PersonIcon from '@mui/icons-material/PersonOutline';
 import { Avatar, DropdownMenu, Logo } from '@/components';
 import { config } from '@/config/env';
@@ -12,25 +15,19 @@ import { APP_VERSION } from '@/config/version';
 import { remoteRegistry } from '@/federation';
 import type { RemoteDefinition } from '@/federation';
 import { useAuth } from '@/hooks/useAuth';
-import { PERMISSIONS } from '@/services/types';
-
-interface NavEntry {
-  to: string;
-  label: string;
-  /** Permiso necesario para ver el enlace (sin él, el enlace no se muestra). */
-  permission?: string;
-}
-
-const ADMIN_LINKS: readonly NavEntry[] = [
-  { to: '/admin/users', label: 'Usuarios', permission: PERMISSIONS.USERS_READ },
-  { to: '/admin/roles', label: 'Roles', permission: PERMISSIONS.ROLES_READ },
-  { to: '/admin/logs', label: 'Bitácora', permission: PERMISSIONS.LOGS_READ },
-];
+import { palette } from '@/theme/palette';
+import { elevation } from '@/theme/tokens';
+import { buildNavigation } from './navigation';
+import { SIDEBAR_ID, Sidebar } from './Sidebar';
 
 /**
- * Estructura base del shell con HTML semántico:
- * <header> · <nav> · <main> · <footer>, más un enlace "saltar al contenido"
- * para navegación por teclado y lectores de pantalla.
+ * Estructura base del shell (prototipo mockups/mockup.png):
+ *  · Encabezado con DEGRADADO de marca (Blue → Violet), botón de menú, logo y menú de usuario.
+ *  · Menú lateral negro suave, OCULTO por defecto (cajón que se abre con el botón de menú).
+ *  · Contenido: aquí se montan las pantallas del shell y los microfrontends remotos, que NO
+ *    dibujan su propio encabezado ni menú: heredan los del shell.
+ * HTML semántico: <header> · <nav> (dentro del menú) · <main> · <footer>, más un enlace
+ * "saltar al contenido" para teclado y lectores de pantalla.
  */
 export function ShellLayout({
   remotes = remoteRegistry,
@@ -39,12 +36,12 @@ export function ShellLayout({
 }) {
   const { user, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const links: NavEntry[] = [
-    { to: '/', label: 'Inicio' },
-    ...remotes.map((remote) => ({ to: remote.path, label: remote.label })),
-    ...ADMIN_LINKS.filter((link) => !link.permission || hasPermission(link.permission)),
-  ];
+  const navigation = useMemo(
+    () => buildNavigation(remotes, hasPermission),
+    [remotes, hasPermission],
+  );
 
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
@@ -60,24 +57,32 @@ export function ShellLayout({
         Saltar al contenido
       </Box>
 
-      <AppBar component="header" position="static" color="primary">
-        <Toolbar sx={{ flexWrap: 'wrap', gap: 2, py: 0.5 }}>
-          <Box sx={{ flexGrow: { xs: 1, md: 0 }, mr: { md: 3 } }}>
-            <Logo tone="light" size={30} />
-          </Box>
+      <AppBar
+        component="header"
+        position="sticky"
+        elevation={0}
+        sx={{
+          background: palette.header.gradient,
+          color: palette.header.text,
+          boxShadow: elevation[2],
+        }}
+      >
+        <Toolbar sx={{ gap: 1.5 }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menú"
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            aria-controls={SIDEBAR_ID}
+          >
+            <MenuIcon />
+          </IconButton>
 
-          <Box component="nav" aria-label="Principal" sx={{ order: { xs: 3, md: 0 }, flexGrow: 1 }}>
-            <Box
-              component="ul"
-              sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, listStyle: 'none', m: 0, p: 0 }}
-            >
-              {links.map((link) => (
-                <li key={link.to}>
-                  <NavItem to={link.to} label={link.label} />
-                </li>
-              ))}
-            </Box>
-          </Box>
+          <Logo tone="light" size={30} />
+
+          <Box sx={{ flexGrow: 1 }} />
 
           {user && (
             <DropdownMenu
@@ -116,6 +121,16 @@ export function ShellLayout({
         </Toolbar>
       </AppBar>
 
+      {user && (
+        <Sidebar
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          user={{ name: user.name, role: user.role }}
+          items={navigation}
+          onLogout={() => void logout()}
+        />
+      )}
+
       <Container
         component="main"
         id="contenido-principal"
@@ -130,28 +145,5 @@ export function ShellLayout({
         </Typography>
       </Box>
     </Box>
-  );
-}
-
-interface NavItemProps {
-  to: string;
-  label: string;
-}
-
-/** Enlace de navegación; marca la página actual con `aria-current` (lo aplica NavLink). */
-function NavItem({ to, label }: NavItemProps) {
-  return (
-    <NavLink
-      to={to}
-      end={to === '/'}
-      style={({ isActive }) => ({
-        color: 'inherit',
-        fontWeight: isActive ? 700 : 400,
-        textDecoration: isActive ? 'underline' : 'none',
-        textUnderlineOffset: 6,
-      })}
-    >
-      {label}
-    </NavLink>
   );
 }

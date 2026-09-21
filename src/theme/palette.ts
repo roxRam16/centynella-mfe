@@ -83,6 +83,23 @@ export const palette = {
     textPlaceholder: '#666D7B', // ≥ 4.5:1 sobre blanco Y sobre el fondo lightBlue
     disabled: '#9AA0AE',
   },
+  // Encabezado del shell: degradado de marca Blue → Violet (nunca el azul solo).
+  // Ambos extremos dan ≥ 4.5:1 con texto blanco (ver palette.test.ts).
+  header: {
+    gradient: `linear-gradient(90deg, ${brand.blue} 0%, ${brand.violet} 100%)`,
+    text: '#FFFFFF',
+  },
+  // Menú lateral: negro SUAVE (no #000) para que descanse la vista y combine con el degradado.
+  sidebar: {
+    background: '#1F2430',
+    hover: 'rgba(255, 255, 255, 0.07)',
+    border: 'rgba(255, 255, 255, 0.10)',
+    text: '#E7E9F0',
+    textMuted: '#A9AFC0',
+    activeBackground: brand.violet, // ítem seleccionado (texto blanco: 4.83:1)
+    activeText: '#FFFFFF',
+    badgeWarning: '#F59E0B', // insignia SANDBOX
+  },
   focus: {
     border: brand.violet,
     ring: 'rgba(110, 109, 248, 0.35)', // halo iris
