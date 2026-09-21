@@ -27,7 +27,7 @@ describe('<ProfilePage />', () => {
     await userEvent.type(screen.getByLabelText('Nombre'), 'Nombre Nuevo');
     await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
-    expect(await screen.findByText('Tus datos se guardaron.')).toBeInTheDocument();
+    expect(await screen.findByText('Datos personales guardados correctamente')).toBeInTheDocument();
     expect(api.calls[0].body).toEqual({ name: 'Nombre Nuevo' });
     expect(auth.updateUser).toHaveBeenCalledWith(updated);
   });

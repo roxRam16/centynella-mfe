@@ -16,6 +16,7 @@ import {
   TextField,
 } from '@/components';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { changePassword, updateProfile } from '@/services/authService';
 import type { Profile } from '@/services/types';
 import { getErrorMessage } from '@/utils/errors';
@@ -49,7 +50,7 @@ export function ProfilePage() {
 
 function PersonalDataForm({ user }: { user: Profile }) {
   const { updateUser } = useAuth();
-  const [saved, setSaved] = useState(false);
+  const toast = useToast();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -61,11 +62,10 @@ function PersonalDataForm({ user }: { user: Profile }) {
   });
 
   const onSubmit = handleSubmit(async ({ name }) => {
-    setSaved(false);
     setServerError(null);
     try {
       updateUser(await updateProfile(name));
-      setSaved(true);
+      toast.success('Datos personales guardados correctamente');
     } catch (error) {
       setServerError(getErrorMessage(error));
     }
@@ -73,7 +73,6 @@ function PersonalDataForm({ user }: { user: Profile }) {
 
   return (
     <Stack component="form" spacing={2.5} noValidate onSubmit={onSubmit} sx={{ maxWidth: 480 }}>
-      {saved && <Alert severity="success">Tus datos se guardaron.</Alert>}
       {serverError && <Alert severity="error">{serverError}</Alert>}
       <TextField
         label="Nombre"
@@ -107,7 +106,7 @@ function PersonalDataForm({ user }: { user: Profile }) {
 
 function ChangePasswordForm() {
   const { setSession } = useAuth();
-  const [saved, setSaved] = useState(false);
+  const toast = useToast();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -119,12 +118,11 @@ function ChangePasswordForm() {
   const password = useWatch({ control, name: 'password' }) ?? '';
 
   const onSubmit = handleSubmit(async ({ currentPassword, password }) => {
-    setSaved(false);
     setServerError(null);
     try {
       setSession(await changePassword(currentPassword, password));
       reset();
-      setSaved(true);
+      toast.success('Contraseña actualizada. Cerramos tus sesiones en otros dispositivos.');
     } catch (error) {
       setServerError(getErrorMessage(error));
     }
@@ -132,11 +130,6 @@ function ChangePasswordForm() {
 
   return (
     <Stack component="form" spacing={2.5} noValidate onSubmit={onSubmit} sx={{ maxWidth: 480 }}>
-      {saved && (
-        <Alert severity="success">
-          Contraseña actualizada. Cerramos tus sesiones en otros dispositivos.
-        </Alert>
-      )}
       {serverError && <Alert severity="error">{serverError}</Alert>}
       <PasswordField
         label="Contraseña actual"

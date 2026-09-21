@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '@/context/AuthContext';
+import { ToastProvider } from '@/context/ToastProvider';
 import type { AuthContextValue } from '@/context/AuthContext';
 import { ThemeProvider } from '@/theme';
 import { makeProfile } from './factories';
@@ -33,9 +34,11 @@ export function renderWithProviders(ui: ReactElement, { route = '/', auth }: Opt
   const authValue = makeAuth(auth);
   const utils = render(
     <ThemeProvider>
-      <AuthContext.Provider value={authValue}>
-        <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
-      </AuthContext.Provider>
+      <ToastProvider>
+        <AuthContext.Provider value={authValue}>
+          <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+        </AuthContext.Provider>
+      </ToastProvider>
     </ThemeProvider>,
   );
   return { ...utils, auth: authValue };

@@ -74,14 +74,6 @@ describe('<LoginPage />', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Correo o contraseña incorrectos.');
   });
-
-  it('muestra el aviso que llega desde otra pantalla (p. ej. contraseña actualizada)', () => {
-    renderLogin({
-      route: { pathname: '/login', state: { notice: 'Tu contraseña fue actualizada.' } },
-    });
-
-    expect(screen.getByRole('alert')).toHaveTextContent('Tu contraseña fue actualizada.');
-  });
 });
 
 describe('<RegisterPage />', () => {

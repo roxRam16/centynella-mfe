@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Box from '@mui/material/Box';
@@ -8,7 +7,6 @@ import Typography from '@mui/material/Typography';
 import { Alert, Button, GoogleButton, Link, PasswordField, TextField } from '@/components';
 import { APP_TITLE } from '@/config/version';
 import { useAuth } from '@/hooks/useAuth';
-import type { RedirectState } from '@/routes/guards';
 import { getErrorMessage } from '@/utils/errors';
 import { loginSchema } from '@/utils/validation';
 import type { z } from 'zod';
@@ -21,7 +19,6 @@ type LoginForm = z.infer<typeof loginSchema>;
  */
 export function LoginPage() {
   const { login } = useAuth();
-  const notice = (useLocation().state as RedirectState | null)?.notice;
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -47,7 +44,6 @@ export function LoginPage() {
         {APP_TITLE}
       </Typography>
 
-      {notice && <Alert severity="success">{notice}</Alert>}
       {serverError && <Alert severity="error">{serverError}</Alert>}
 
       <Stack component="form" spacing={2.5} noValidate onSubmit={onSubmit}>

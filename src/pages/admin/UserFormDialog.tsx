@@ -32,7 +32,7 @@ interface UserFormDialogProps {
   user: User | null;
   roleOptions: readonly SelectOption[];
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (saved: User) => void;
 }
 
 /** Crear o editar un usuario (administración). Los errores del backend se muestran en el diálogo. */
@@ -60,13 +60,14 @@ export function UserFormDialog({ open, user, roleOptions, onClose, onSaved }: Us
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
     try {
+      let saved: User;
       if (isEdit) {
         const changes: EditForm = { name: values.name, role: values.role, status: values.status };
-        await updateUser(user.id, changes);
+        saved = await updateUser(user.id, changes);
       } else {
-        await createUser(values);
+        saved = await createUser(values);
       }
-      onSaved();
+      onSaved(saved);
     } catch (error) {
       setServerError(getErrorMessage(error));
     }

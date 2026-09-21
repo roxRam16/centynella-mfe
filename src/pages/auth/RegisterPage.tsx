@@ -14,7 +14,7 @@ import {
   TextField,
 } from '@/components';
 import { useAuth } from '@/hooks/useAuth';
-import type { RedirectState } from '@/routes/guards';
+import { useToast } from '@/hooks/useToast';
 import { register as registerAccount } from '@/services/authService';
 import { getErrorMessage } from '@/utils/errors';
 import { registerSchema } from '@/utils/validation';
@@ -26,6 +26,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -45,11 +46,10 @@ export function RegisterPage() {
     }
     try {
       await login({ email, password }); // PublicOnly redirige al inicio
+      toast.success(`¡Bienvenido, ${name}! Tu cuenta fue creada correctamente`);
     } catch {
-      const state: RedirectState = {
-        notice: 'Tu cuenta fue creada. Inicia sesión para continuar.',
-      };
-      navigate('/login', { state, replace: true });
+      toast.success('Tu cuenta fue creada. Inicia sesión para continuar.');
+      navigate('/login', { replace: true });
     }
   });
 

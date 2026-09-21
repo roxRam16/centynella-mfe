@@ -15,6 +15,7 @@ import {
 } from '@/components';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/useToast';
 import { deleteRole, listPermissions, listRoles } from '@/services/rolesService';
 import { PERMISSIONS } from '@/services/types';
 import type { Role } from '@/services/types';
@@ -24,6 +25,7 @@ import { RoleFormDialog } from './RoleFormDialog';
 /** Roles y permisos: lista de roles con sus permisos; crear, editar y eliminar (con `roles:manage`). */
 export function RolesPage() {
   const { hasPermission } = useAuth();
+  const toast = useToast();
   const canManage = hasPermission(PERMISSIONS.ROLES_MANAGE);
   const roles = useAsyncResource(listRoles);
   const permissions = useAsyncResource(listPermissions);
@@ -31,19 +33,18 @@ export function RolesPage() {
   const [editing, setEditing] = useState<Role | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Role | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const confirmDelete = async () => {
     if (!deleting) return;
     setDeleteBusy(true);
-    setActionError(null);
     try {
       await deleteRole(deleting.key);
       setDeleting(null);
       roles.reload();
+      toast.success(`Rol "${deleting.name}" eliminado correctamente`);
     } catch (error) {
       setDeleting(null);
-      setActionError(getErrorMessage(error));
+      toast.error(getErrorMessage(error), { title: 'No se pudo eliminar el rol' });
     } finally {
       setDeleteBusy(false);
     }
@@ -65,11 +66,6 @@ export function RolesPage() {
         }
       />
 
-      {actionError && (
-        <Alert severity="error" onClose={() => setActionError(null)}>
-          {actionError}
-        </Alert>
-      )}
       {roles.status === 'loading' && <Spinner label="Cargando roles…" />}
       {roles.status === 'error' && (
         <Alert
@@ -149,7 +145,10 @@ export function RolesPage() {
           role={editing === 'new' ? null : editing}
           permissions={catalog}
           onClose={() => setEditing(null)}
-          onSaved={() => {
+          onSaved={(saved) => {
+            toast.success(
+              `Rol "${saved.name}" ${editing === 'new' ? 'creado' : 'actualizado'} correctamente`,
+            );
             setEditing(null);
             roles.reload();
           }}

@@ -6,8 +6,6 @@ import { ForbiddenPage } from '@/pages/ForbiddenPage';
 /** Estado que se pasa al login para volver a la página que se intentaba abrir. */
 export interface RedirectState {
   from?: string;
-  /** Mensaje de éxito para mostrar en el login (p. ej. "contraseña actualizada"). */
-  notice?: string;
 }
 
 /**

@@ -20,6 +20,7 @@ import type { Column, SelectOption } from '@/components';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/hooks/useAuth';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useToast } from '@/hooks/useToast';
 import { listRoles } from '@/services/rolesService';
 import { PERMISSIONS } from '@/services/types';
 import type { Role, User, UserStatus } from '@/services/types';
@@ -38,6 +39,7 @@ const STATUS_FILTER: SelectOption[] = [
 /** Administración de usuarios: búsqueda, filtros, paginación, crear, editar y eliminar. */
 export function UsersPage() {
   const { user: me, hasPermission } = useAuth();
+  const toast = useToast();
   const canCreate = hasPermission(PERMISSIONS.USERS_CREATE);
   const canUpdate = hasPermission(PERMISSIONS.USERS_UPDATE);
   const canDelete = hasPermission(PERMISSIONS.USERS_DELETE);
@@ -50,7 +52,6 @@ export function UsersPage() {
   const [editing, setEditing] = useState<User | 'new' | null>(null);
   const [deleting, setDeleting] = useState<User | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const q = useDebouncedValue(search.trim());
   const filters = useMemo(
@@ -77,14 +78,14 @@ export function UsersPage() {
   const confirmDelete = async () => {
     if (!deleting) return;
     setDeleteBusy(true);
-    setActionError(null);
     try {
       await deleteUser(deleting.id);
       setDeleting(null);
       users.reload();
+      toast.success(`Usuario "${deleting.name}" eliminado correctamente`);
     } catch (error) {
       setDeleting(null);
-      setActionError(getErrorMessage(error));
+      toast.error(getErrorMessage(error), { title: 'No se pudo eliminar el usuario' });
     } finally {
       setDeleteBusy(false);
     }
@@ -219,11 +220,6 @@ export function UsersPage() {
           />
         </Stack>
 
-        {actionError && (
-          <Alert severity="error" onClose={() => setActionError(null)}>
-            {actionError}
-          </Alert>
-        )}
         {users.status === 'error' && (
           <Alert
             severity="error"
@@ -257,7 +253,10 @@ export function UsersPage() {
           user={editing === 'new' ? null : editing}
           roleOptions={roleOptions}
           onClose={() => setEditing(null)}
-          onSaved={() => {
+          onSaved={(saved) => {
+            toast.success(
+              `Usuario "${saved.name}" ${editing === 'new' ? 'creado' : 'actualizado'} correctamente`,
+            );
             setEditing(null);
             users.reload();
           }}

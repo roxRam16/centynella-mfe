@@ -117,6 +117,23 @@ Prototipo: `mockups/mockup.png`. El shell ([ShellLayout.tsx](src/layouts/ShellLa
 - **Navegación** ([navigation.tsx](src/layouts/navigation.tsx)): `buildNavigation(remotes, hasPermission)` arma "Inicio", un enlace por remote registrado y el grupo "Administración" filtrado por permisos. Ocultar un enlace no es seguridad: el backend valida cada petición.
 - **Un remote:** se renderiza dentro de `<main>` (con `Suspense` + `ErrorBoundary`), **no dibuja su propio encabezado ni menú**, usa componentes de la librería y solo los tokens del tema. Al registrarlo en `remoteRegistry` aparece solo en el menú.
 
+## Notificaciones (toasts)
+
+Avisos breves y no bloqueantes para confirmar acciones ("Usuario creado correctamente"). Piezas: `Toast` y `ToastViewport` en [components/Toast](src/components/Toast), el proveedor [ToastProvider](src/context/ToastProvider.tsx) (montado una vez en [App.tsx](src/App.tsx), por encima del enrutador) y el hook [useToast](src/hooks/useToast.ts).
+
+```tsx
+const toast = useToast();
+toast.success('Usuario "Ana" creado correctamente');
+toast.error(getErrorMessage(error), { title: 'No se pudo eliminar el usuario' });
+// también: toast.info(...), toast.warning(...), toast.clear()  ·  opciones: { title, duration }
+```
+
+- **Cuándo usarlo:** confirmar acciones (crear, editar, eliminar, guardar, cambiar contraseña) y errores de acciones puntuales. Los errores de un formulario van en línea dentro del formulario y los de carga de una pantalla en un `Alert` con "Reintentar".
+- **Comportamiento:** abajo a la derecha (abajo y a todo lo ancho en móvil), por encima de los modales; máx. 4 a la vez; un aviso repetido reemplaza al anterior; se cierra solo (éxito/info 5 s, aviso 7 s, error 8 s) o con la X, y se **pausa** con el cursor o el foco encima.
+- **Accesibilidad:** icono + color + texto (nunca solo color); dos regiones vivas permanentes (`polite` para éxito/info/aviso, `assertive` para errores); respeta `prefers-reduced-motion`.
+- **Remotes:** usan el mismo `useToast` (el contexto lo aporta el shell).
+- En pruebas, `renderWithProviders` ya incluye el proveedor; usa `notifications()` de [test/toasts.ts](src/test/toasts.ts) para aserciones.
+
 ## Sistema de diseño
 
 Fuentes (carpeta `mockups/`, solo referencia): `login.png` (pantalla de acceso), `styles.jpg` (paleta), `style_fonts.png` (tipografía) y `style_guide.jpg` (componentes, estados, espaciado). Todo el proyecto los toma **solo de `src/theme/`** — nunca colores ni medidas sueltas.
@@ -139,7 +156,7 @@ Importa **siempre** de `@/components`, nunca de MUI en las pantallas. Cada compo
 | ------------------ | ------------------------------------------------------------------------------------------------------ |
 | Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `GoogleButton`, `Link` |
 | Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox` (compatibles con `react-hook-form`)                 |
-| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`                                  |
+| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                         |
 | Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `Pagination`, `PageHeader`                             |
 | Identidad          | `Logo`, `Avatar`                                                                                       |
 
@@ -262,6 +279,13 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 21-sep-2026 — Notificaciones (toasts)
+
+- Componente `Toast` + `ToastProvider` + hook `useToast`: avisos con icono y color, cierre automático con pausa al pasar el cursor, apilado máximo y regiones vivas accesibles.
+- Conectado a: crear/editar/eliminar usuarios y roles, guardar datos del perfil, cambiar contraseña, registro y restablecimiento de contraseña (el aviso sobrevive al pasar al login).
+- Los errores de acciones (p. ej. eliminar el último administrador) ahora salen como toast; los de formularios siguen en línea.
+- 407 pruebas, cobertura ~96 %.
 
 ### 21-sep-2026 — Adiós a las barras fantasma y barras de desplazamiento elegantes
 

@@ -4,6 +4,7 @@ import { makePage, makeProfile, makeRole, makeUser } from '@/test/factories';
 import { mockApi, problem } from '@/test/mockApi';
 import type { MockApi } from '@/test/mockApi';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { notifications } from '@/test/toasts';
 import { UsersPage } from './UsersPage';
 
 const ana = makeUser({ id: 'u-1', name: 'Ana Pérez', email: 'ana@example.com', role: 'viewer' });
@@ -111,6 +112,9 @@ describe('<UsersPage />', () => {
     });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(api.callsTo('GET /api/v1/users').length).toBeGreaterThan(1); // recargó el listado
+    expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
+      /Usuario ".+" creado correctamente/,
+    );
   });
 
   it('valida el formulario y muestra los errores del backend dentro del diálogo', async () => {
@@ -152,6 +156,9 @@ describe('<UsersPage />', () => {
       role: 'manager',
       status: 'active',
     });
+    expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
+      /actualizado correctamente/,
+    );
   });
 
   it('elimina un usuario tras confirmar', async () => {
@@ -166,6 +173,7 @@ describe('<UsersPage />', () => {
 
     await waitFor(() => expect(api.callsTo('DELETE /api/v1/users/u-1')).toHaveLength(1));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(notifications()).toHaveTextContent('Usuario "Ana Pérez" eliminado correctamente');
   });
 
   it('muestra el error si no se puede eliminar (p. ej. último administrador)', async () => {
@@ -178,9 +186,10 @@ describe('<UsersPage />', () => {
       within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eliminar' }),
     );
 
-    expect(
-      await screen.findByText('Debe existir al menos un administrador activo.'),
-    ).toBeInTheDocument();
+    await screen.findByText(/No se pudo eliminar/);
+    const toast = notifications();
+    expect(toast).toHaveTextContent('No se pudo eliminar el usuario');
+    expect(toast).toHaveTextContent('Debe existir al menos un administrador activo.');
   });
 
   it('no permite eliminarse a sí mismo', async () => {

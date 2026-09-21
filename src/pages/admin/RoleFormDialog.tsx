@@ -18,7 +18,7 @@ interface RoleFormDialogProps {
   role: Role | null;
   permissions: readonly PermissionInfo[];
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (saved: Role) => void;
 }
 
 /** Crear o editar un rol y elegir sus permisos. Los permisos del administrador están bloqueados. */
@@ -53,16 +53,14 @@ export function RoleFormDialog({ open, role, permissions, onClose, onSaved }: Ro
     setServerError(null);
     const permissionList = [...selected];
     try {
-      if (isEdit) {
-        await updateRole(role.key, {
-          name: values.name,
-          description: values.description,
-          ...(locked ? {} : { permissions: permissionList }),
-        });
-      } else {
-        await createRole({ ...values, permissions: permissionList });
-      }
-      onSaved();
+      const saved = isEdit
+        ? await updateRole(role.key, {
+            name: values.name,
+            description: values.description,
+            ...(locked ? {} : { permissions: permissionList }),
+          })
+        : await createRole({ ...values, permissions: permissionList });
+      onSaved(saved);
     } catch (error) {
       setServerError(getErrorMessage(error));
     }

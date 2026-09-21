@@ -1,20 +1,22 @@
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/context';
+import { AuthProvider, ToastProvider } from '@/context';
 import { ThemeProvider } from '@/theme';
 import { AppRoutes } from '@/routes';
 import { AppErrorBoundary } from '@/routes/AppErrorBoundary';
 
-/** Raíz de la aplicación: tema global + enrutado + sesión del usuario. */
+/** Raíz de la aplicación: tema global + notificaciones + enrutado + sesión del usuario. */
 export function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <AppErrorBoundary>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </AppErrorBoundary>
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <AppErrorBoundary>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </AppErrorBoundary>
+        </BrowserRouter>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

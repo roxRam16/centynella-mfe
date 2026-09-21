@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { PERMISSION_CATALOG, makeProfile, makeRole } from '@/test/factories';
 import { mockApi, problem } from '@/test/mockApi';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { notifications } from '@/test/toasts';
 import { RolesPage } from './RolesPage';
 
 const admin = makeRole({
@@ -66,6 +67,9 @@ describe('<RolesPage />', () => {
     );
 
     await waitFor(() => expect(api.callsTo('DELETE /api/v1/roles/auditor')).toHaveLength(1));
+    expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
+      'Rol "Auditor" eliminado correctamente',
+    );
   });
 
   it('avisa si el rol tiene usuarios asignados', async () => {
@@ -78,7 +82,10 @@ describe('<RolesPage />', () => {
       within(await screen.findByRole('dialog')).getByRole('button', { name: 'Eliminar' }),
     );
 
-    expect(await screen.findByText(/tiene usuarios asignados/)).toBeInTheDocument();
+    await screen.findByText(/No se pudo eliminar/);
+    const toast = notifications();
+    expect(toast).toHaveTextContent('No se pudo eliminar el rol');
+    expect(toast).toHaveTextContent(/tiene usuarios asignados/);
   });
 
   it('crea un rol eligiendo permisos del catálogo', async () => {
@@ -100,6 +107,9 @@ describe('<RolesPage />', () => {
       description: '',
       permissions: ['users:read'],
     });
+    expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
+      /creado correctamente/,
+    );
   });
 
   it('valida la clave del rol', async () => {
@@ -134,6 +144,9 @@ describe('<RolesPage />', () => {
         api.callsTo('PATCH /api/v1/roles/auditor')[0].body as { permissions: string[] }
       ).permissions.sort(),
     ).toEqual(['roles:read', 'users:read']);
+    expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
+      /actualizado correctamente/,
+    );
   });
 
   it('los permisos del administrador están bloqueados', async () => {

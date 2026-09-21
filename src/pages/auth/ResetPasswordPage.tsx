@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Alert, Button, Link, PasswordField, PasswordRequirements } from '@/components';
-import type { RedirectState } from '@/routes/guards';
+import { useToast } from '@/hooks/useToast';
 import { resetPassword } from '@/services/authService';
 import { getErrorMessage } from '@/utils/errors';
 import { resetPasswordSchema } from '@/utils/validation';
@@ -17,6 +17,7 @@ type ResetForm = z.infer<typeof resetPasswordSchema>;
 export function ResetPasswordPage() {
   const token = useSearchParams()[0].get('token');
   const navigate = useNavigate();
+  const toast = useToast();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -31,10 +32,8 @@ export function ResetPasswordPage() {
     setServerError(null);
     try {
       await resetPassword(token, password);
-      const state: RedirectState = {
-        notice: 'Tu contraseña fue actualizada. Ya puedes iniciar sesión.',
-      };
-      navigate('/login', { state, replace: true });
+      toast.success('Tu contraseña fue actualizada. Ya puedes iniciar sesión.');
+      navigate('/login', { replace: true });
     } catch (error) {
       setServerError(getErrorMessage(error));
     }

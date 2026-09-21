@@ -37,6 +37,8 @@ export { Dialog, ConfirmDialog } from './Dialog';
 export type { DialogProps, ConfirmDialogProps } from './Dialog';
 export { DropdownMenu } from './DropdownMenu';
 export type { DropdownMenuProps, MenuAction } from './DropdownMenu';
+export { Toast, ToastViewport } from './Toast';
+export type { ToastData, ToastProps, ToastSeverity, ToastViewportProps } from './Toast';
 
 // Estructura y datos
 export { Card } from './Card';
