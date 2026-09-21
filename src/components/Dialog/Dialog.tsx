@@ -31,7 +31,15 @@ export function Dialog({ open, title, onClose, actions, maxWidth = 'sm', childre
       maxWidth={maxWidth}
       fullWidth
       slotProps={{
-        paper: { sx: { borderRadius: `${radius.large}px`, m: 2, width: 'calc(100% - 32px)' } },
+        paper: {
+          sx: {
+            borderRadius: `${radius.large}px`,
+            m: 2,
+            width: 'calc(100% - 32px)',
+            // El foco cae en el contenedor (para atrapar el teclado): sin anillo, los controles sí lo tienen.
+            '&:focus, &:focus-visible': { outline: 'none' },
+          },
+        },
       }}
     >
       <DialogTitle id={titleId} component="h2" sx={{ fontWeight: 600 }}>

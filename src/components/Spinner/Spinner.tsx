@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
+import { visuallyHidden } from '@/utils/a11y';
 
 export interface SpinnerProps {
   /** Texto para lectores de pantalla (y visible si `showLabel`). */
@@ -40,12 +41,3 @@ export function Spinner({
     </Box>
   );
 }
-
-const visuallyHidden = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  whiteSpace: 'nowrap',
-} as const;

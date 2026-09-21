@@ -90,6 +90,8 @@ export const palette = {
     text: '#FFFFFF',
   },
   // Menú lateral: negro SUAVE (no #000) para que descanse la vista y combine con el degradado.
+  /** Barras de desplazamiento: pulgar (fondo claro) y pulgar sobre el menú oscuro. */
+  scrollbar: { thumb: brand.iris, thumbOnDark: 'rgba(255, 255, 255, 0.28)' },
   sidebar: {
     background: '#1F2430',
     hover: 'rgba(255, 255, 255, 0.07)',

@@ -48,7 +48,13 @@ export const theme = createTheme({
   },
   components: {
     MuiCssBaseline: {
-      styleOverrides: { body: { WebkitFontSmoothing: 'antialiased' } },
+      styleOverrides: {
+        // Barras de desplazamiento delgadas y discretas (pulgar iris, pista transparente).
+        // `scrollbar-width` NO se hereda, por eso va en todos los elementos (páginas, modales, tablas).
+        html: { scrollbarColor: `${palette.scrollbar.thumb} transparent` },
+        '*': { scrollbarWidth: 'thin' },
+        body: { WebkitFontSmoothing: 'antialiased' },
+      },
     },
     MuiButton: {
       defaultProps: { disableElevation: true, disableRipple: false },

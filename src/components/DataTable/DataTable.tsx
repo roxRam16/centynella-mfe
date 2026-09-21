@@ -8,6 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { palette } from '@/theme/palette';
+import { visuallyHidden } from '@/utils/a11y';
 
 export interface Column<T> {
   key: string;
@@ -89,12 +90,3 @@ export function DataTable<T>({
     </TableContainer>
   );
 }
-
-const visuallyHidden = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  whiteSpace: 'nowrap',
-} as const;

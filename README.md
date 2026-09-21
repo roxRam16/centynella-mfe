@@ -126,6 +126,7 @@ Fuentes (carpeta `mockups/`, solo referencia): `login.png` (pantalla de acceso),
 - **Tokens** ([tokens.ts](src/theme/tokens.ts)): espaciado 4·8·16·24·32·48, radios (0·4·8·16·píldora) y elevación 0-3 con sombra teñida de azul.
 - **Estados** (guía): botones Normal → Hover (más claro) → Pressed (más oscuro); campo con foco violet + halo iris; error rojo; alertas con fondo tenue + borde + icono.
 - **Atributos preatentivos:** color semántico (verde/ámbar/rojo/azul), tamaño y peso para jerarquía; el estado **nunca** va solo en color (siempre icono + texto).
+- **Barras de desplazamiento:** globales en [theme.ts](src/theme/theme.ts) (delgadas, pulgar iris, pista transparente). Si algo debe ocultarse visualmente para lectores de pantalla, usa `visuallyHidden` de `@/utils/a11y`; en `sx` de MUI **nunca** pongas `width: 1` (= 100 %), usa `'1px'`.
 - **Accesibilidad:** pares texto/fondo WCAG AA (≥ 4.5:1) verificados por [palette.test.ts](src/theme/palette.test.ts) — incluye los hallazgos conocidos (iris solo decoración/texto grande; violet como texto solo sobre blanco). HTML semántico, etiquetas asociadas, `role="alert"`, foco visible, navegación por teclado.
 - **Responsive (mobile-first):** grilla de 12 columnas por breakpoint, tipografía fluida con `clamp()`, el login se apila en móvil y las tablas hacen scroll horizontal en su contenedor.
 - **Ilustración y fondo del login:** SVG propios inspirados en el mockup ([AuthArtwork.tsx](src/layouts/AuthArtwork.tsx)). Si se dispone del arte original, se reemplaza solo ese archivo.
@@ -261,6 +262,13 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 21-sep-2026 — Adiós a las barras fantasma y barras de desplazamiento elegantes
+
+- Causa: en `sx` de MUI `width: 1` significa 100 %, así que el texto "solo para lectores de pantalla" (tabla, requisitos de contraseña, spinner) ocupaba todo su contenedor y provocaba barras horizontales/verticales en páginas y modales. Ahora hay un único helper `visuallyHidden` ([a11y.ts](src/utils/a11y.ts)) con 1 px reales.
+- Barras de desplazamiento delgadas, redondeadas y en iris (`palette.scrollbar`), con variante clara para el menú oscuro; el contraste del pulgar está probado.
+- Los modales ya no muestran el anillo de foco en el contenedor.
+- 386 pruebas, cobertura ~96 %.
 
 ### 21-sep-2026 — Menú lateral de riel que empuja el contenido y pie del login
 

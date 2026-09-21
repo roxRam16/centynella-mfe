@@ -169,7 +169,17 @@ export function Sidebar({ open, onOpenChange, user, items, onLogout }: SidebarPr
 
         <Box sx={{ borderTop: `1px solid ${sidebar.border}` }} />
 
-        <Box component="nav" aria-label="Principal" sx={{ flexGrow: 1, overflowY: 'auto', py: 1 }}>
+        <Box
+          component="nav"
+          aria-label="Principal"
+          sx={{
+            flexGrow: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            py: 1,
+            scrollbarColor: `${palette.scrollbar.thumbOnDark} transparent`,
+          }}
+        >
           <List disablePadding>
             {items.map((item) =>
               item.kind === 'group' ? (

@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import CheckIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { palette } from '@/theme/palette';
+import { visuallyHidden } from '@/utils/a11y';
 
 export interface Requirement {
   label: string;
@@ -52,12 +53,3 @@ export function RequirementsChecklist({ label, requirements }: RequirementsCheck
     </Box>
   );
 }
-
-const visuallyHidden = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  whiteSpace: 'nowrap',
-} as const;

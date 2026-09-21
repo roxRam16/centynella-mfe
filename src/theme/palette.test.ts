@@ -112,4 +112,13 @@ describe('palette (accesibilidad WCAG AA)', () => {
       AA_LARGE_TEXT,
     );
   });
+
+  it('el pulgar de las barras de desplazamiento se distingue del fondo (≥ 3:1)', () => {
+    expect(
+      contrastRatio(palette.scrollbar.thumb, palette.neutral.background),
+    ).toBeGreaterThanOrEqual(AA_LARGE_TEXT);
+    expect(contrastRatio(palette.scrollbar.thumb, palette.neutral.surface)).toBeGreaterThanOrEqual(
+      AA_LARGE_TEXT,
+    );
+  });
 });
