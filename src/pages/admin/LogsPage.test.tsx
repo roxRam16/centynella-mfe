@@ -4,6 +4,12 @@ import type { LogEntry } from '@/services/types';
 import { makePage, makeProfile } from '@/test/factories';
 import { mockApi, problem } from '@/test/mockApi';
 import type { MockApi } from '@/test/mockApi';
+import {
+  applyAdvancedFilter,
+  filterPanel,
+  openAdvancedFilter,
+  setAdvancedFilter,
+} from '@/test/filters';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { LogsPage } from './LogsPage';
 
@@ -37,7 +43,7 @@ const failed = entry({
 
 function setupApi(extra: Parameters<typeof mockApi>[0] = {}): MockApi {
   return mockApi({
-    'GET /api/v1/logs': () => ({ json: makePage([login, failed], { page_size: 25 }) }),
+    'GET /api/v1/logs': () => ({ json: makePage([login, failed], { page_size: 10 }) }),
     'GET /api/v1/logs/modules': () => ({ json: ['auth', 'database', 'users'] }),
     ...extra,
   });
@@ -59,7 +65,7 @@ describe('<LogsPage />', () => {
     expect(
       within(screen.getByRole('row', { name: /Intento de login fallido/ })).getByText('WARNING'),
     ).toBeInTheDocument();
-    expect(screen.getByText('2 evento(s)')).toBeInTheDocument();
+    expect(screen.getByText('1–2 de 2')).toBeInTheDocument();
   });
 
   it('muestra "—" cuando el evento no tiene usuario o sesión (login fallido)', async () => {
@@ -79,8 +85,10 @@ describe('<LogsPage />', () => {
     renderWithProviders(<LogsPage />);
     await screen.findByRole('row', { name: /Sesión iniciada/ });
 
+    await setAdvancedFilter('Módulo', 'auth');
+
     expect(
-      within(screen.getByLabelText('Módulo'))
+      within(screen.getByRole('combobox', { name: 'Módulo' }))
         .getAllByRole('option')
         .map((o) => o.textContent),
     ).toEqual(['Todos', 'auth', 'database', 'users']);
@@ -91,12 +99,14 @@ describe('<LogsPage />', () => {
     renderWithProviders(<LogsPage />);
     await screen.findByRole('row', { name: /Sesión iniciada/ });
 
-    await userEvent.selectOptions(screen.getByLabelText('Módulo'), 'auth');
+    await setAdvancedFilter('Módulo', 'auth');
+    await setAdvancedFilter('Nivel', 'WARNING');
+    await setAdvancedFilter('Periodo', '60');
+    await applyAdvancedFilter();
+
     await waitFor(() => expect(lastQuery(api).get('module')).toBe('auth'));
-    await userEvent.selectOptions(screen.getByLabelText('Nivel'), 'WARNING');
-    await waitFor(() => expect(lastQuery(api).get('level')).toBe('WARNING'));
-    await userEvent.selectOptions(screen.getByLabelText('Periodo'), '60');
-    await waitFor(() => expect(lastQuery(api).get('since')).toMatch(/^\d{4}-\d\d-\d\dT/));
+    expect(lastQuery(api).get('level')).toBe('WARNING');
+    expect(lastQuery(api).get('since')).toMatch(/^\d{4}-\d\d-\d\dT/);
   });
 
   it('busca en el mensaje con retraso', async () => {
@@ -104,7 +114,10 @@ describe('<LogsPage />', () => {
     renderWithProviders(<LogsPage />);
     await screen.findByRole('row', { name: /Sesión iniciada/ });
 
-    await userEvent.type(screen.getByLabelText('Buscar en el mensaje'), 'fallido');
+    await userEvent.type(
+      screen.getByRole('searchbox', { name: 'Buscar en el mensaje' }),
+      'fallido',
+    );
 
     await waitFor(() => expect(lastQuery(api).get('q')).toBe('fallido'));
   });
@@ -118,7 +131,10 @@ describe('<LogsPage />', () => {
       within(row).getByRole('button', { name: 'Filtrar por usuario user-abcdef123456' }),
     );
     await waitFor(() => expect(lastQuery(api).get('user_id')).toBe('user-abcdef123456'));
-    expect(screen.getByLabelText('Usuario (id)')).toHaveValue('user-abcdef123456');
+    await openAdvancedFilter();
+    expect(within(filterPanel()).getByRole('textbox', { name: 'Usuario (id)' })).toHaveValue(
+      'user-abcdef123456',
+    );
 
     await userEvent.click(
       within(row).getByRole('button', { name: 'Filtrar por sesión sess-abcdef123456' }),
@@ -136,7 +152,8 @@ describe('<LogsPage />', () => {
     renderWithProviders(<LogsPage />);
     await screen.findByRole('row', { name: /Sesión iniciada/ });
 
-    await userEvent.type(screen.getByLabelText('Sesión (id)'), 'mi-sesion');
+    await setAdvancedFilter('Sesión (id)', 'mi-sesion');
+    await applyAdvancedFilter();
 
     await waitFor(() => expect(lastQuery(api).get('session_id')).toBe('mi-sesion'));
   });
@@ -145,19 +162,34 @@ describe('<LogsPage />', () => {
     const api = setupApi();
     renderWithProviders(<LogsPage />);
     await screen.findByRole('row', { name: /Sesión iniciada/ });
-    await userEvent.selectOptions(screen.getByLabelText('Módulo'), 'auth');
-    await userEvent.type(screen.getByLabelText('Usuario (id)'), 'abc');
+    await setAdvancedFilter('Módulo', 'auth');
+    await setAdvancedFilter('Usuario (id)', 'abc');
+    await applyAdvancedFilter();
+    await waitFor(() => expect(lastQuery(api).get('module')).toBe('auth'));
 
-    await userEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Restaurar' }));
 
     await waitFor(() => expect(lastQuery(api).get('module')).toBeNull());
     expect(lastQuery(api).get('user_id')).toBeNull();
-    expect(screen.getByLabelText('Usuario (id)')).toHaveValue('');
+    expect(
+      within(filterPanel()).getByRole('button', { name: /^Usuario \(id\)/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('muestra 10 eventos por página por defecto y permite cambiarlo', async () => {
+    const api = setupApi();
+    renderWithProviders(<LogsPage />);
+    await screen.findByRole('row', { name: /Sesión iniciada/ });
+    expect(lastQuery(api).get('page_size')).toBe('10');
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '100');
+
+    await waitFor(() => expect(lastQuery(api).get('page_size')).toBe('100'));
   });
 
   it('pagina cuando hay más de una página', async () => {
     const api = setupApi({
-      'GET /api/v1/logs': () => ({ json: makePage([login], { total: 80, page_size: 25 }) }),
+      'GET /api/v1/logs': () => ({ json: makePage([login], { total: 80, page_size: 10 }) }),
     });
     renderWithProviders(<LogsPage />);
     await screen.findByRole('row', { name: /Sesión iniciada/ });

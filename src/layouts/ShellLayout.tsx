@@ -119,10 +119,12 @@ export function ShellLayout({
           </Toolbar>
         </AppBar>
 
+        {/* Sin ancho máximo: tablas, buscador y tarjetas ocupan todo el ancho del contenido. */}
         <Container
           component="main"
           id="contenido-principal"
-          sx={{ flexGrow: 1, py: { xs: 3, md: 5 } }}
+          maxWidth={false}
+          sx={{ flexGrow: 1, py: { xs: 2.5, md: 3 } }}
         >
           <Outlet />
         </Container>

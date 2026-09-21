@@ -49,7 +49,7 @@ const slide = {
  * "salta" al pasar del riel al menú extendido.
  */
 const rowSx = (active: boolean) => ({
-  minHeight: 48,
+  minHeight: 44,
   px: '1.125rem',
   whiteSpace: 'nowrap',
   color: active ? sidebar.activeText : sidebar.text,
@@ -61,8 +61,11 @@ const rowSx = (active: boolean) => ({
     backgroundImage: active ? sidebar.activeGradient : 'none',
   },
   '&.Mui-focusVisible': { outline: `2px solid ${sidebar.activeText}`, outlineOffset: -2 },
+  // Letra e iconos compactos: el centro del icono queda a 28 px del borde (centro del riel de 56 px).
+  '& .MuiListItemText-primary': { fontSize: '0.8125rem' },
+  '& .MuiSvgIcon-root': { fontSize: '1.25rem' },
   '& .MuiListItemIcon-root': {
-    minWidth: '2.5rem',
+    minWidth: '2.25rem',
     color: active ? sidebar.activeText : sidebar.textMuted,
   },
 });
@@ -156,7 +159,7 @@ export function Sidebar({ open, onOpenChange, user, items, onLogout }: SidebarPr
           ...slide,
         }}
       >
-        <Box sx={{ px: '0.625rem', pt: 1.5, pb: 0.5 }}>
+        <Box sx={{ px: '0.5rem', pt: 1.5, pb: 0.5 }}>
           <IconButton
             onClick={() => onOpenChange(!open)}
             aria-label={open ? 'Cerrar menú' : 'Abrir menú'}

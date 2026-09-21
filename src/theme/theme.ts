@@ -109,7 +109,7 @@ export const theme = createTheme({
     caption: { fontSize: '0.75rem', lineHeight: 1.5 },
     button: {
       fontFamily: fontFamilyDisplay,
-      fontSize: '0.875rem',
+      fontSize: '0.8125rem',
       fontWeight: 700,
       letterSpacing: '0.02em',
       textTransform: 'none',
@@ -233,6 +233,12 @@ export const theme = createTheme({
           color: palette.neutral.textSecondary,
           '&.Mui-selected': { color: palette.primary.main, fontWeight: 600 },
         },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: { fontSize: '0.8125rem', paddingBlock: 12 },
+        head: { fontWeight: 600, color: palette.neutral.textPrimary },
       },
     },
     MuiCard: {

@@ -6,6 +6,8 @@
  */
 
 // Acciones
+export { IconButton } from './IconButton';
+export type { IconButtonProps, IconButtonTone } from './IconButton';
 export { Button } from './Button';
 export type { ButtonProps, ButtonShape, ButtonVariant } from './Button';
 export { GoogleButton } from './GoogleButton';
@@ -51,12 +53,20 @@ export { Grid, GridItem } from './Grid';
 export type { GridProps, GridItemProps, GridSpan } from './Grid';
 export { Tabs } from './Tabs';
 export type { TabItem, TabsProps } from './Tabs';
-export { DataTable } from './DataTable';
-export type { Column, DataTableProps } from './DataTable';
+export { DataTable, DEFAULT_PAGE_SIZES } from './DataTable';
+export type { Column, DataTablePagination, DataTableProps, DataView } from './DataTable';
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
 export { PageHeader } from './PageHeader';
 export type { PageHeaderProps } from './PageHeader';
+export { ModulePage } from './ModulePage';
+export type { ModulePageProps } from './ModulePage';
+export { ActionBar } from './ActionBar';
+export type { ActionBarFilter, ActionBarProps } from './ActionBar';
+export { FilterAdvanced } from './FilterAdvanced';
+export type { FilterAdvancedProps, FilterField, FilterValues } from './FilterAdvanced';
+export { SearchBar } from './SearchBar';
+export type { SearchBarProps } from './SearchBar';
 
 // Identidad
 export { Logo } from './Logo';

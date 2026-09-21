@@ -271,10 +271,10 @@ describe('<ShellLayout /> — ancho del menú para las notificaciones', () => {
 
   it('publica el ancho del menú (riel → extendido) y lo retira al desmontar', async () => {
     const { unmount } = renderShell();
-    expect(inset()).toBe('3.75rem');
+    expect(inset()).toBe('3.5rem');
 
     await openMenu();
-    expect(inset()).toBe('min(18rem, 88vw)');
+    expect(inset()).toBe('min(14.5rem, 88vw)');
 
     unmount();
     expect(inset()).toBe('');

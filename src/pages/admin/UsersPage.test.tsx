@@ -4,6 +4,7 @@ import { makePage, makeProfile, makeRole, makeUser } from '@/test/factories';
 import { mockApi, problem } from '@/test/mockApi';
 import type { MockApi } from '@/test/mockApi';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { applyAdvancedFilter, filterToggle, setAdvancedFilter } from '@/test/filters';
 import { notifications } from '@/test/toasts';
 import { UsersPage } from './UsersPage';
 
@@ -52,7 +53,7 @@ describe('<UsersPage />', () => {
     renderWithProviders(<UsersPage />);
     await screen.findByRole('row', { name: /Ana Pérez/ });
 
-    await userEvent.type(screen.getByLabelText('Buscar'), 'luis');
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Buscar usuarios' }), 'luis');
 
     await waitFor(() =>
       expect(api.callsTo('GET /api/v1/users').at(-1)?.url.searchParams.get('q')).toBe('luis'),
@@ -64,13 +65,116 @@ describe('<UsersPage />', () => {
     renderWithProviders(<UsersPage />);
     await screen.findByRole('row', { name: /Ana Pérez/ });
 
-    await userEvent.selectOptions(screen.getByLabelText('Estado'), 'disabled');
+    await setAdvancedFilter('Estado', 'disabled');
+    await applyAdvancedFilter();
 
     await waitFor(() =>
       expect(api.callsTo('GET /api/v1/users').at(-1)?.url.searchParams.get('status')).toBe(
         'disabled',
       ),
     );
+  });
+
+  it('rol y estado están ocultos hasta activar el filtro avanzado', async () => {
+    setupApi();
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    expect(screen.queryByRole('form', { name: 'Refina tu búsqueda' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Rol')).not.toBeInTheDocument();
+
+    await userEvent.click(filterToggle());
+
+    const panel = screen.getByRole('form', { name: 'Refina tu búsqueda' });
+    expect(within(panel).getByRole('button', { name: /^Rol/ })).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: /^Estado/ })).toBeInTheDocument();
+  });
+
+  it('filtra por rol desde el filtro avanzado y muestra cuántos filtros hay', async () => {
+    const api = setupApi();
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    await setAdvancedFilter('Rol', 'manager');
+    await applyAdvancedFilter();
+
+    await waitFor(() =>
+      expect(api.callsTo('GET /api/v1/users').at(-1)?.url.searchParams.get('role')).toBe('manager'),
+    );
+    expect(
+      screen.getByRole('button', { name: 'Filtros avanzados (1 aplicado)' }),
+    ).toBeInTheDocument();
+  });
+
+  it('Restaurar quita los filtros', async () => {
+    const api = setupApi();
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+    await setAdvancedFilter('Estado', 'disabled');
+    await applyAdvancedFilter();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Restaurar' }));
+
+    await waitFor(() =>
+      expect(api.callsTo('GET /api/v1/users').at(-1)?.url.searchParams.get('status')).toBeNull(),
+    );
+  });
+
+  it('muestra 10 registros por página y deja elegir 10, 20, 50 o 100', async () => {
+    const api = setupApi({
+      'GET /api/v1/users': () => ({ json: makePage([ana], { total: 250 }) }),
+    });
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    expect(api.callsTo('GET /api/v1/users')[0].url.searchParams.get('page_size')).toBe('10');
+    const select = screen.getByRole('combobox', { name: 'Mostrar' });
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['10', '20', '50', '100']);
+
+    await userEvent.selectOptions(select, '50');
+
+    await waitFor(() => {
+      const query = api.callsTo('GET /api/v1/users').at(-1)!.url.searchParams;
+      expect(query.get('page_size')).toBe('50');
+      expect(query.get('page')).toBe('1');
+    });
+  });
+
+  it('las acciones de la fila son iconos con nombre accesible (sin texto Editar/Eliminar)', async () => {
+    setupApi();
+    renderWithProviders(<UsersPage />);
+    const row = await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    expect(within(row).getByRole('button', { name: 'Editar a Ana Pérez' })).toBeInTheDocument();
+    expect(within(row).getByRole('button', { name: 'Eliminar a Ana Pérez' })).toBeInTheDocument();
+    expect(within(row).queryByText('Editar')).not.toBeInTheDocument();
+    expect(within(row).queryByText('Eliminar')).not.toBeInTheDocument();
+  });
+
+  it('el menú Acciones cambia entre tabla y tarjetas', async () => {
+    setupApi();
+    renderWithProviders(<UsersPage />);
+    await screen.findByRole('row', { name: /Ana Pérez/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Acciones' }));
+    expect(screen.getByRole('menuitemradio', { name: 'Ver como tabla' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Ver como tarjetas' }));
+
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    const card = (await screen.findByText('ana@example.com')).closest('li')!;
+    expect(within(card).getByRole('button', { name: 'Editar a Ana Pérez' })).toBeInTheDocument();
+    expect(within(card).getByText('Rol')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Acciones' }));
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Ver como tabla' }));
+    expect(await screen.findByRole('table')).toBeInTheDocument();
   });
 
   it('pagina cuando hay más de una página', async () => {

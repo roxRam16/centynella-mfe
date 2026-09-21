@@ -117,6 +117,28 @@ Prototipo: `mockups/mockup.png`. El shell ([ShellLayout.tsx](src/layouts/ShellLa
 - **Navegación** ([navigation.tsx](src/layouts/navigation.tsx)): `buildNavigation(remotes, hasPermission)` arma "Inicio", un enlace por remote registrado y el grupo "Administración" filtrado por permisos. Ocultar un enlace no es seguridad: el backend valida cada petición.
 - **Un remote:** se renderiza dentro de `<main>` (con `Suspense` + `ErrorBoundary`), **no dibuja su propio encabezado ni menú**, usa componentes de la librería y solo los tokens del tema. Al registrarlo en `remoteRegistry` aparece solo en el menú.
 
+## Módulos de listado (plantilla `ModulePage`)
+
+Todo módulo que lista registros nace con [ModulePage](src/components/ModulePage/ModulePage.tsx), inspirado en Synapsis (solo se copia la estructura; colores y tipografía son los nuestros). Ver un ejemplo completo en [UsersPage](src/pages/admin/UsersPage.tsx) y [LogsPage](src/pages/admin/LogsPage.tsx).
+
+```
+Título (?)                                     [ + ][ ⟳ ][ filtro ][ Acciones ▾ ]   ← botonera (ActionBar)
+┌ Refina tu búsqueda ┐  ┌ buscador principal (SearchBar, todo el ancho) ───────────┐
+│ FilterAdvanced     │  │ tabla o tarjetas (DataTable) · Mostrar 10▾ · paginador   │
+│ (oculto hasta      │  └───────────────────────────────────────────────────────────┘
+└ activar el filtro) ┘
+```
+
+- **`PageHeader`:** título compacto con un icono **"?"**; la descripción del módulo NO se ve hasta pulsarlo (y se oculta al volver a pulsarlo).
+- **`ActionBar` (botonera):** una pieza con degradado que junta **Nuevo (+)**, **Actualizar** (el icono gira mientras carga), **Filtros avanzados** (interruptor con insignia de cuántos filtros hay aplicados) y **Acciones ▾**. Cada botón es opcional; los de icono llevan tooltip y `aria-label`.
+- **`FilterAdvanced`:** panel "Refina tu búsqueda" con un campo por fila (texto o lista) que se despliega; **Buscar** (o Enter) aplica todo junto y **Restaurar** limpia. Cada módulo decide qué campos muestra con `filters.fields`: el buscador principal queda simple (p. ej. en Usuarios rol y estado viven aquí, no en la pantalla).
+- **`SearchBar`:** buscador principal de todo el ancho (región `search`, botón para limpiar).
+- **Menú "Acciones":** cambia entre **tabla (grid)** y **tarjetas** (una por registro; 1, 2, 3… columnas según el ancho). La vista elegida se recuerda por módulo (`useViewMode`, localStorage). El módulo puede añadir más acciones con `actions`.
+- **`DataTable`:** columnas con `primary` (identifica al registro) y `kind: 'actions'` (botones, van al pie de la tarjeta). **Paginación del servidor** integrada: 10 por defecto y selector de **10 · 20 · 50 · 100** registros, rango visible ("1–10 de 25") y paginador.
+- **Sin barras de desplazamiento en espacios angostos:** si el contenido mide menos de 720 px (se mide el contenido, no la ventana, así también reacciona al extender el menú lateral) la tabla pasa a la **vista compacta**: solo el registro y un icono de tres puntos; al pulsarlo se despliega el resto de la información en vertical.
+- **Acciones con iconos:** editar/eliminar/ver son `IconButton` (siempre con tooltip y `aria-label`, p. ej. "Editar a Ana").
+- Para un módulo nuevo: define las columnas, los `filters.fields`, el estado de página/filtros y pásalos a `<ModulePage …>`; los diálogos van como `children`.
+
 ## Notificaciones (toasts)
 
 Avisos breves y no bloqueantes para confirmar acciones ("Usuario creado correctamente"). Piezas: `Toast` y `ToastViewport` en [components/Toast](src/components/Toast), el proveedor [ToastProvider](src/context/ToastProvider.tsx) (montado una vez en [App.tsx](src/App.tsx), por encima del enrutador) y el hook [useToast](src/hooks/useToast.ts).
@@ -153,13 +175,13 @@ Fuentes (carpeta `mockups/`, solo referencia): `login.png` (pantalla de acceso),
 
 Importa **siempre** de `@/components`, nunca de MUI en las pantallas. Cada componente: carpeta propia + `index.ts` + prueba. Antes de crear uno nuevo, revisa si ya existe.
 
-| Grupo              | Componentes                                                                                                    |
-| ------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `GoogleButton`, `Link`         |
-| Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox`, `Switch`, `ChipSelect` (compatibles con `react-hook-form`) |
-| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                                 |
-| Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `Pagination`, `PageHeader`                                     |
-| Identidad          | `Logo`, `Avatar`                                                                                               |
+| Grupo              | Componentes                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `IconButton`, `GoogleButton`, `Link`                 |
+| Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox`, `Switch`, `ChipSelect` (compatibles con `react-hook-form`)                       |
+| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                                                       |
+| Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `Pagination`, `PageHeader`, `ModulePage`, `ActionBar`, `FilterAdvanced`, `SearchBar` |
+| Identidad          | `Logo`, `Avatar`                                                                                                                     |
 
 ## Autenticación y sesión
 
@@ -280,6 +302,14 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 21-sep-2026 — Módulos de listado: botonera, filtro avanzado, tarjetas y paginación
+
+- Plantilla `ModulePage` con `ActionBar` (nuevo, actualizar, filtro, acciones), `FilterAdvanced` ("Refina tu búsqueda"), `SearchBar` y `DataTable`; Usuarios y Bitácora ya la usan (rol y estado pasaron al filtro avanzado).
+- `DataTable`: vista de tabla o tarjetas (menú Acciones, se recuerda por módulo), paginación con selector de 10/20/50/100 registros (10 por defecto) y vista compacta con tres puntos en espacios angostos (sin scroll horizontal).
+- Editar/eliminar/ver como iconos (`IconButton`); `PageHeader` con título más pequeño y descripción tras el icono "?".
+- Menú lateral más angosto (riel 56 px, extendido 232 px) con letra e iconos más pequeños; el contenido ocupa todo el ancho.
+- 490 pruebas, cobertura ~97 %.
 
 ### 21-sep-2026 — Tema futurista: degradados, Raleway, menú negro y nuevos controles
 

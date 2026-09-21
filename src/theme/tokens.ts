@@ -36,9 +36,9 @@ export const fontFamilyDisplay = ['"Raleway"', ...systemFonts].join(',');
 /** Medidas del marco del shell (menú lateral) que comparten el menú y las notificaciones. */
 export const layout = {
   /** Ancho del menú lateral colapsado (riel de iconos). */
-  railWidth: '3.75rem',
-  /** Ancho del menú lateral extendido (nunca más del 88 % de una pantalla pequeña). */
-  sidebarWidth: 'min(18rem, 88vw)',
+  railWidth: '3.5rem',
+  /** Ancho del menú lateral extendido (angosto; nunca más del 88 % de una pantalla pequeña). */
+  sidebarWidth: 'min(14.5rem, 88vw)',
   /**
    * Variable CSS con el ancho ACTUAL del menú lateral (lo publica el menú). Las notificaciones la
    * leen para no taparlo, sin acoplarse a él. Sin menú (login) vale el riel.
