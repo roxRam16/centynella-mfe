@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Alert, Button, GoogleButton, Link, PasswordField, TextField } from '@/components';
-import { APP_LABEL } from '@/config/version';
+import { APP_TITLE } from '@/config/version';
 import { useAuth } from '@/hooks/useAuth';
 import type { RedirectState } from '@/routes/guards';
 import { getErrorMessage } from '@/utils/errors';
@@ -44,7 +44,7 @@ export function LoginPage() {
         Bienvenido
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
-        {APP_LABEL}
+        {APP_TITLE}
       </Typography>
 
       {notice && <Alert severity="success">{notice}</Alert>}

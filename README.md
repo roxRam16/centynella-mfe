@@ -112,8 +112,8 @@ El remote debe: exponer `./App` (componente React por `default`), compartir las 
 
 Prototipo: `mockups/mockup.png`. El shell ([ShellLayout.tsx](src/layouts/ShellLayout.tsx)) dibuja **todo el marco**; un remote solo aporta su contenido.
 
-- **Encabezado:** degradado de marca Blue → Violet (`palette.header.gradient`), con botón de menú, logo y menú de usuario. Texto blanco con contraste AA sobre ambos extremos.
-- **Menú lateral** ([Sidebar.tsx](src/layouts/Sidebar.tsx)): negro suave `#1F2430` (nunca `#000`), **oculto por defecto**; se abre con el botón de menú (cajón modal: foco atrapado, se cierra con Esc, la X o clic fuera, y al elegir una opción). Muestra usuario, navegación con grupos desplegables, perfil, cerrar sesión, ambiente (SANDBOX) y versión. Ítem activo en violet con `aria-current="page"`.
+- **Encabezado:** degradado de marca Blue → Violet (`palette.header.gradient`), con logo y menú de usuario. Texto blanco con contraste AA sobre ambos extremos.
+- **Menú lateral** ([Sidebar.tsx](src/layouts/Sidebar.tsx)): negro suave `#1F2430` (nunca `#000`) con **dos estados**: _riel_ angosto solo con iconos (siempre visible, con tooltip y `aria-label`) y _extendido_ (usuario, textos, grupos desplegables, perfil, cerrar sesión, ambiente SANDBOX y versión). Al extenderse **empuja el contenido** (no lo tapa); solo en pantallas muy pequeñas (xs) se superpone con un velo y se repliega al elegir una opción. Se alterna con el botón de hamburguesa/X del propio menú; Esc lo colapsa; tocar un grupo en el riel lo extiende con el grupo abierto. Ítem activo en violet con `aria-current="page"`.
 - **Navegación** ([navigation.tsx](src/layouts/navigation.tsx)): `buildNavigation(remotes, hasPermission)` arma "Inicio", un enlace por remote registrado y el grupo "Administración" filtrado por permisos. Ocultar un enlace no es seguridad: el backend valida cada petición.
 - **Un remote:** se renderiza dentro de `<main>` (con `Suspense` + `ErrorBoundary`), **no dibuja su propio encabezado ni menú**, usa componentes de la librería y solo los tokens del tema. Al registrarlo en `remoteRegistry` aparece solo en el menú.
 
@@ -165,7 +165,7 @@ Uso desde un remote: `const { user, hasPermission } = useAuth();` y `apiRequest(
 
 ## Versión de la aplicación
 
-El login muestra **"Sistema de inventario IA 2025 - V.0.0.1"** (y el pie de la app la versión). La versión sale del campo `version` de `package.json`, que Vite inyecta al compilar ([version.ts](src/config/version.ts)): una sola fuente de verdad.
+El login muestra **"Sistema de inventario IA"** bajo el saludo y, como pie de página, **"Desarrollado por RRR - 2026 - V.0.0.1"** (el pie de la app muestra ambiente y versión). La versión sale del campo `version` de `package.json`, que Vite inyecta al compilar ([version.ts](src/config/version.ts)): una sola fuente de verdad.
 
 **Se incrementa sola una vez por cada push.** Un hook de git (`.githooks/pre-commit`) ejecuta [scripts/bump-version.mjs](scripts/bump-version.mjs): el primer commit posterior a un push sube el parche (`0.0.1 → 0.0.2`); los siguientes commits, hasta el próximo push, ya la encuentran distinta de la del remoto y no la tocan. Usa `npm version`, que actualiza **a la vez `package.json` y `package-lock.json`** (el lock guarda la versión en dos lugares y npm los mantiene sincronizados; no hay que editarlo a mano).
 
@@ -262,10 +262,16 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 
 ## Historial de cambios
 
-### 21-sep-2026 — Shell según el mockup: encabezado degradado y menú lateral oculto (V.0.0.2)
+### 21-sep-2026 — Menú lateral de riel que empuja el contenido y pie del login
+
+- Menú lateral con dos estados: riel de iconos siempre visible y extendido que empuja el contenido (en xs se superpone). Botón de menú dentro del propio menú.
+- Login: bajo el saludo solo "Sistema de inventario IA"; la versión pasa a un pie de página "Desarrollado por RRR - 2026 - V.x.y.z" en todas las pantallas de acceso.
+- 383 pruebas, cobertura ~96 %.
+
+### 21-sep-2026 — Shell según el mockup: encabezado degradado y menú lateral (V.0.0.2)
 
 - Encabezado con degradado Blue → Violet en lugar de azul sólido.
-- Menú lateral negro suave, oculto por defecto y abierto desde un botón de menú; navegación generada desde `remoteRegistry` y permisos, con grupo "Administración" desplegable.
+- Menú lateral negro suave (primera versión: cajón oculto); navegación generada desde `remoteRegistry` y permisos, con grupo "Administración" desplegable.
 - Tokens nuevos `header` y `sidebar` en `palette.ts` con pruebas de contraste AA.
 - 381 pruebas, cobertura ~96 %.
 

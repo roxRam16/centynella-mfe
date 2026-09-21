@@ -10,13 +10,12 @@ const type = (label: string | RegExp, value: string) =>
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe('login: versión del sistema', () => {
-  it('muestra el nombre del sistema y la versión de package.json bajo el saludo', () => {
+describe('login: nombre del sistema', () => {
+  it('muestra solo el nombre del sistema bajo el saludo (la versión va en el pie)', () => {
     renderWithProviders(<LoginPage />, { auth: { user: null } });
 
-    expect(
-      screen.getByText(/^Sistema de inventario IA 2025 - V\.\d+\.\d+\.\d+$/),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Sistema de inventario IA')).toBeInTheDocument();
+    expect(screen.queryByText(/V\.\d+\.\d+\.\d+/)).not.toBeInTheDocument();
   });
 });
 

@@ -7,7 +7,7 @@
  */
 export const APP_VERSION: string = __APP_VERSION__;
 
-export const APP_TITLE = 'Sistema de inventario IA 2025';
+export const APP_TITLE = 'Sistema de inventario IA';
 
-/** Texto que se muestra en el login y en el pie: "Sistema de inventario IA 2025 - V.0.0.1". */
-export const APP_LABEL = `${APP_TITLE} - V.${APP_VERSION}`;
+/** Créditos del pie de las pantallas de acceso: "Desarrollado por RRR - 2026 - V.0.0.1". */
+export const APP_CREDITS = `Desarrollado por RRR - 2026 - V.${APP_VERSION}`;

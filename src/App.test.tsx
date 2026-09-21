@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import * as healthService from '@/services/healthService';
 import { tokenStore } from '@/services/tokenStore';
 import { makeSession } from '@/test/factories';
@@ -33,9 +32,7 @@ describe('<App /> (integración: sesión real, sin dobles de contexto)', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: '¡Hola Mundo!' }),
     ).toBeInTheDocument();
-    // El menú lateral está oculto: se abre con el botón del encabezado.
-    expect(screen.queryByRole('navigation', { name: 'Principal' })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+    // El menú lateral es un riel de iconos siempre visible.
     expect(await screen.findByRole('link', { name: 'Inicio' })).toHaveAttribute(
       'aria-current',
       'page',

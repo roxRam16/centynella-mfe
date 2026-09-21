@@ -1,5 +1,4 @@
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import * as healthService from '@/services/healthService';
 import type { RemoteDefinition } from '@/federation';
 import { makeProfile } from '@/test/factories';
@@ -44,9 +43,8 @@ describe('<AppRoutes />', () => {
       renderAt('/');
 
       expect(screen.getByRole('banner')).toBeInTheDocument();
-      // El menú lateral está oculto hasta que se abre con el botón del encabezado.
-      expect(screen.getByRole('button', { name: 'Abrir menú' })).toBeInTheDocument();
-      expect(screen.queryByRole('navigation', { name: 'Principal' })).not.toBeInTheDocument();
+      // El menú lateral (riel de iconos) forma parte del marco del shell.
+      expect(screen.getByRole('navigation', { name: 'Principal' })).toBeInTheDocument();
       expect(screen.getByRole('main')).toBeInTheDocument();
       expect(screen.getByRole('contentinfo')).toBeInTheDocument();
       expect(screen.getByRole('heading', { level: 1, name: '¡Hola Mundo!' })).toBeInTheDocument();
@@ -85,7 +83,6 @@ describe('<AppRoutes />', () => {
       renderAt('/inventory', { remotes: [inventoryRemote] });
 
       expect(await screen.findByText('Remote de inventario')).toBeInTheDocument();
-      await userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
       expect(await screen.findByRole('link', { name: 'Inventario' })).toHaveAttribute(
         'href',
         '/inventory',
