@@ -98,13 +98,15 @@ Viven en `private/` (Vite: `envDir: 'private'`), una por ambiente: `.env.sandbox
 ## Integrar un microfrontend standalone
 
 1. Añade el remote a `VITE_REMOTES` en `private/.env.*`:
-   `VITE_REMOTES=inventory@http://localhost:5174/remoteEntry.js`
-2. Declara el módulo para TypeScript, p. ej. en `src/federation/remotes.d.ts`: `declare module 'inventory/App';`
+   `VITE_REMOTES=orders@http://localhost:5174/remoteEntry.js`
+2. Declara el módulo para TypeScript, p. ej. en `src/federation/remotes.d.ts`: `declare module 'orders/App';`
 3. Regístralo en [src/federation/remoteRegistry.ts](src/federation/remoteRegistry.ts):
    ```ts
-   { id: 'inventory', label: 'Inventario', path: '/inventory', loader: () => import('inventory/App') }
+   { id: 'orders', label: 'Pedidos', path: '/orders', loader: () => import('orders/App') }
    ```
-4. El shell genera solo la ruta (`/inventory/*`) y el enlace en la navegación.
+4. El shell genera solo la ruta (`/orders/*`) y el enlace en la navegación.
+
+> `Inventario` (`/inventory`) ya NO es un ejemplo de remote: es una pantalla propia del shell (ver más abajo). Si en el futuro se separa en un microfrontend de verdad, hay que liberar antes esa ruta y ese id.
 
 El remote debe: exponer `./App` (componente React por `default`), compartir las mismas dependencias singleton y usar `basename` acorde a su ruta.
 
@@ -119,7 +121,7 @@ Prototipo: `mockups/mockup.png`. El shell ([ShellLayout.tsx](src/layouts/ShellLa
 
 ## Módulos de listado (plantilla `ModulePage`)
 
-Todo módulo que lista registros nace con [ModulePage](src/components/ModulePage/ModulePage.tsx), inspirado en Synapsis (solo se copia la estructura; colores y tipografía son los nuestros). Ver un ejemplo completo en [UsersPage](src/pages/admin/UsersPage.tsx) y [LogsPage](src/pages/admin/LogsPage.tsx).
+Todo módulo que lista registros nace con [ModulePage](src/components/ModulePage/ModulePage.tsx), inspirado en Synapsis (solo se copia la estructura; colores y tipografía son los nuestros). Ver un ejemplo completo en [UsersPage](src/pages/admin/UsersPage.tsx), [LogsPage](src/pages/admin/LogsPage.tsx) y [InventoryPage](src/pages/inventory/InventoryPage.tsx).
 
 ```
 Título (?)                                     [ + ][ ⟳ ][ filtro ][ Acciones ▾ ]   ← botonera (ActionBar)
@@ -302,6 +304,14 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 22-oct-2026 — Primer módulo de negocio: Inventario
+
+- Pantalla `/inventory` (permiso `products:read`): catálogo de productos sobre la plantilla `ModulePage` — crear, editar, eliminar, buscar por nombre/SKU, filtrar por categoría y estado, chip de alerta en el producto bajo su umbral de stock.
+- Nuevo enlace "Inventario" en el menú (antes de los remotes), visible según permiso.
+- Consume `GET/POST/PATCH/DELETE /api/v1/products` de `centynella-core` (ver su propio historial de cambios).
+- Nota de arquitectura: por ahora vive como pantalla del shell, no como microfrontend aparte (se decidió priorizar velocidad para una primera prueba con un usuario real); se separa en un remote más adelante si hace falta. El ejemplo de "Integrar un microfrontend standalone" ya no usa `inventory` como id/ruta de muestra — ver la nota en esa sección.
+- 505 pruebas, cobertura ~97 %.
 
 ### 21-sep-2026 — Módulos de listado: botonera, filtro avanzado, tarjetas y paginación
 

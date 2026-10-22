@@ -1,4 +1,5 @@
 import { mockApi } from '@/test/mockApi';
+import * as productsService from './productsService';
 import * as rolesService from './rolesService';
 import * as usersService from './usersService';
 
@@ -74,5 +75,49 @@ describe('rolesService', () => {
 
     expect(api.calls[0].body).toMatchObject({ key: 'auditor', permissions: ['users:read'] });
     expect(api.calls[2].method).toBe('DELETE');
+  });
+});
+
+describe('productsService', () => {
+  it('lista con filtros como query string', async () => {
+    const api = mockApi({
+      'GET /api/v1/products': () => ({ json: { items: [], total: 0 } }),
+    });
+
+    await productsService.listProducts({
+      q: 'refresco',
+      category: 'Bebidas',
+      status: 'active',
+      page: 2,
+      page_size: 10,
+    });
+
+    expect(api.calls[0].url.searchParams.get('q')).toBe('refresco');
+    expect(api.calls[0].url.searchParams.get('category')).toBe('Bebidas');
+    expect(api.calls[0].url.searchParams.get('page_size')).toBe('10');
+  });
+
+  it('crea, edita y elimina con los verbos REST correctos', async () => {
+    const api = mockApi({
+      'POST /api/v1/products': () => ({ status: 201, json: {} }),
+      'PATCH /api/v1/products/p%201': () => ({ json: {} }),
+      'DELETE /api/v1/products/p%201': () => undefined,
+    });
+
+    await productsService.createProduct({
+      sku: 'ABC-1',
+      name: 'Producto',
+      category: '',
+      unit: 'pieza',
+      price: 10,
+      quantity: 1,
+      low_stock_threshold: 1,
+      status: 'active',
+    });
+    await productsService.updateProduct('p 1', { quantity: 5 });
+    await productsService.deleteProduct('p 1');
+
+    expect(api.calls.map((call) => call.method)).toEqual(['POST', 'PATCH', 'DELETE']);
+    expect(api.calls[1].body).toEqual({ quantity: 5 });
   });
 });

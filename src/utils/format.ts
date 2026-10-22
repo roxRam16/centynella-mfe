@@ -1,3 +1,10 @@
+const currencyFormat = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+
+/** Precio en pesos: `18.5` → "$18.50". */
+export function formatCurrency(amount: number): string {
+  return currencyFormat.format(amount);
+}
+
 const dateTimeFormat = new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' });
 
 const timestampFormat = new Intl.DateTimeFormat('es', {

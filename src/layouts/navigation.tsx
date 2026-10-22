@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import AppsIcon from '@mui/icons-material/AppsOutlined';
 import HistoryIcon from '@mui/icons-material/HistoryOutlined';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
+import InventoryIcon from '@mui/icons-material/Inventory2Outlined';
 import PeopleIcon from '@mui/icons-material/PeopleOutline';
 import SecurityIcon from '@mui/icons-material/SecurityOutlined';
 import ShieldIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
@@ -60,6 +61,7 @@ const ADMIN_LINKS: readonly AdminEntry[] = [
  * Construye el menú lateral según los microfrontends registrados y los permisos.
  *
  *  · "Inicio" siempre.
+ *  · "Inventario" si la persona puede ver el catálogo (`products:read`).
  *  · Un enlace por cada remote (ícono genérico de aplicación).
  *  · "Administración": grupo desplegable con lo que la persona puede ver; si no puede ver
  *    nada, el grupo entero se omite.
@@ -70,6 +72,10 @@ export function buildNavigation(
   hasPermission: (permission: string) => boolean,
 ): NavItem[] {
   const items: NavItem[] = [{ kind: 'link', to: '/', label: 'Inicio', icon: <HomeIcon /> }];
+
+  if (hasPermission(PERMISSIONS.PRODUCTS_READ)) {
+    items.push({ kind: 'link', to: '/inventory', label: 'Inventario', icon: <InventoryIcon /> });
+  }
 
   for (const remote of remotes) {
     items.push({ kind: 'link', to: remote.path, label: remote.label, icon: <AppsIcon /> });

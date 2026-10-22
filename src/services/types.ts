@@ -87,6 +87,31 @@ export interface UserFilters {
   page_size?: number;
 }
 
+export type ProductStatus = 'active' | 'discontinued';
+
+/** Producto del catálogo (`/api/v1/products`). */
+export interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  category: string;
+  unit: string;
+  price: number;
+  quantity: number;
+  low_stock_threshold: number;
+  status: ProductStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductFilters {
+  q?: string;
+  category?: string;
+  status?: ProductStatus | '';
+  page?: number;
+  page_size?: number;
+}
+
 /** Permisos conocidos por el frontend (deben coincidir con `Permission` del backend). */
 export const PERMISSIONS = {
   USERS_READ: 'users:read',
@@ -96,6 +121,10 @@ export const PERMISSIONS = {
   ROLES_READ: 'roles:read',
   ROLES_MANAGE: 'roles:manage',
   LOGS_READ: 'logs:read',
+  PRODUCTS_READ: 'products:read',
+  PRODUCTS_CREATE: 'products:create',
+  PRODUCTS_UPDATE: 'products:update',
+  PRODUCTS_DELETE: 'products:delete',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

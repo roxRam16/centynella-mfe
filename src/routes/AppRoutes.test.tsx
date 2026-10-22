@@ -6,11 +6,12 @@ import { mockApi } from '@/test/mockApi';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { AppRoutes } from './AppRoutes';
 
-const inventoryRemote: RemoteDefinition = {
-  id: 'inventory',
-  label: 'Inventario',
-  path: '/inventory',
-  loader: async () => ({ default: () => <p>Remote de inventario</p> }),
+// "Inventario" ya es una pantalla propia del shell: el remote de ejemplo usa otro nombre y ruta.
+const ordersRemote: RemoteDefinition = {
+  id: 'orders',
+  label: 'Pedidos',
+  path: '/orders',
+  loader: async () => ({ default: () => <p>Remote de pedidos</p> }),
 };
 
 const renderAt = (
@@ -80,12 +81,12 @@ describe('<AppRoutes />', () => {
     });
 
     it('monta un microfrontend registrado en su ruta y lo enlaza en la navegación', async () => {
-      renderAt('/inventory', { remotes: [inventoryRemote] });
+      renderAt('/orders', { remotes: [ordersRemote] });
 
-      expect(await screen.findByText('Remote de inventario')).toBeInTheDocument();
-      expect(await screen.findByRole('link', { name: 'Inventario' })).toHaveAttribute(
+      expect(await screen.findByText('Remote de pedidos')).toBeInTheDocument();
+      expect(await screen.findByRole('link', { name: 'Pedidos' })).toHaveAttribute(
         'href',
-        '/inventory',
+        '/orders',
       );
     });
 

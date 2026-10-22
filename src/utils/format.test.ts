@@ -1,4 +1,11 @@
-import { formatDateTime } from './format';
+import { formatCurrency, formatDateTime } from './format';
+
+describe('formatCurrency', () => {
+  it('formatea un precio en pesos con dos decimales', () => {
+    expect(formatCurrency(18.5)).toMatch(/18\.50/);
+    expect(formatCurrency(0)).toMatch(/0\.00/);
+  });
+});
 
 describe('formatDateTime', () => {
   it('muestra "Nunca" cuando no hay fecha', () => {

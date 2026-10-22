@@ -179,3 +179,27 @@ export const roleEditSchema = z.object({
   name: safeText(2, 60, 'Mínimo 2 caracteres'),
   description: safeText(0, 200, ''),
 });
+
+// SKU: letras, números, . _ - (sin espacios ni acentos); se normaliza a mayúsculas como el backend.
+const skuSchema = z
+  .string()
+  .trim()
+  .min(1, 'El SKU es obligatorio')
+  .regex(/^[A-Za-z0-9._-]{1,40}$/, 'Solo letras, números, punto, guion y guion bajo')
+  .transform((value) => value.toUpperCase());
+
+export const productCreateSchema = z.object({
+  sku: skuSchema,
+  name: safeText(2, 120, 'Mínimo 2 caracteres'),
+  category: safeText(0, 60, ''),
+  unit: safeText(1, 20, 'La unidad es obligatoria'),
+  price: z.coerce.number().min(0, 'No puede ser negativo').max(1_000_000),
+  quantity: z.coerce.number().int('Debe ser un número entero').min(0, 'No puede ser negativo'),
+  low_stock_threshold: z.coerce
+    .number()
+    .int('Debe ser un número entero')
+    .min(0, 'No puede ser negativo'),
+  status: z.enum(['active', 'discontinued']),
+});
+
+export const productEditSchema = productCreateSchema.omit({ sku: true });

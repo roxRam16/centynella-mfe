@@ -8,10 +8,11 @@ import { renderWithProviders } from '@/test/renderWithProviders';
 import { AuthLayout } from './AuthLayout';
 import { ShellLayout } from './ShellLayout';
 
-const inventory: RemoteDefinition = {
-  id: 'inventory',
-  label: 'Inventario',
-  path: '/inventory',
+// "Inventario" ya es una pantalla propia del shell: el remote de ejemplo usa otro nombre.
+const orders: RemoteDefinition = {
+  id: 'orders',
+  label: 'Pedidos',
+  path: '/orders',
   loader: async () => ({ default: () => null }),
 };
 
@@ -210,11 +211,11 @@ describe('<ShellLayout /> — menú lateral (riel + extendido)', () => {
   });
 
   it('lista los microfrontends registrados', () => {
-    renderShell({ remotes: [inventory] });
+    renderShell({ remotes: [orders] });
 
-    expect(within(menu()).getByRole('link', { name: 'Inventario' })).toHaveAttribute(
+    expect(within(menu()).getByRole('link', { name: 'Pedidos' })).toHaveAttribute(
       'href',
-      '/inventory',
+      '/orders',
     );
   });
 

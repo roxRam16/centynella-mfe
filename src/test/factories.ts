@@ -2,6 +2,10 @@ import type { Page, PermissionInfo, Profile, Role, TokenResponse, User } from '@
 
 export const ALL_PERMISSIONS = [
   'logs:read',
+  'products:create',
+  'products:delete',
+  'products:read',
+  'products:update',
   'roles:manage',
   'roles:read',
   'users:create',
