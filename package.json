@@ -1,6 +1,6 @@
 {
   "name": "centynella-mfe",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "private": true,
   "type": "module",
   "description": "CENTYNELLA-MFE: shell (host) de Module Federation para la administración y gestión de inventarios.",
@@ -32,8 +32,8 @@
     "@module-federation/vite": "^1.22.1",
     "@mui/icons-material": "^7.3.11",
     "@mui/material": "^7.3.11",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "react-hook-form": "^7.88.0",
     "react-router-dom": "^7.18.4",
     "zod": "^4.6.5"

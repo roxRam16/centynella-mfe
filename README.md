@@ -8,24 +8,31 @@ Construido con **React 19 · Vite · TypeScript** y **Module Federation**; conte
 ## Arquitectura de microfrontends
 
 ```
-                    ┌───────────────────────────────┐
-                    │  CENTYNELLA-MFE  (este repo)  │
-                    │  SHELL / HOST                 │
-                    │  layout · rutas · tema · UI   │
-                    └──────┬───────────────┬────────┘
-       Module Federation   │               │   Module Federation
-                 ┌─────────▼──────┐  ┌─────▼──────────┐
-                 │ remote:        │  │ remote:        │   ← proyectos standalone
-                 │ inventory (…)  │  │ orders (…)     │     (aún por crear)
-                 └────────────────┘  └────────────────┘
-                              │
-                              ▼  REST
-                     CENTYNELLA-CORE (API)
+                    ┌────────────────────────────────┐
+                    │   CENTYNELLA-MFE  (este repo)   │
+                    │   SHELL / HOST                  │
+                    │   layout · rutas · tema · UI    │
+                    │                                 │
+                    │   expone (centynella_shell/*):  │
+                    │   theme · components · hooks ·  │
+                    │   services · utils · providers  │
+                    └──────────────┬──────────────────┘
+                   Module Federation (bidireccional:
+                   el remote consume al shell Y el
+                   shell carga al remote)
+                                ▼
+                 ┌──────────────────────────────┐
+                 │ remote: centynella-clientes   │   ← proyecto standalone,
+                 │ (Clientes y fiado)            │     repo y despliegue propios
+                 └──────────────┬────────────────┘
+                                │  REST (vía centynella_shell/services)
+                                ▼
+                       CENTYNELLA-CORE (API)
 ```
 
 - Este proyecto es el **host**: aporta el layout, la navegación, el tema y la librería de componentes.
-- Cada **remote** (microfrontend standalone) es un proyecto aparte con su propio repo y despliegue; el shell lo carga en tiempo de ejecución.
-- `react`, `react-dom`, `react-router-dom`, MUI y Emotion se comparten como **singleton** para que exista una sola copia (ver [federation.config.ts](federation.config.ts)). **Todo remote debe declarar el mismo bloque `shared`.**
+- Cada **remote** (microfrontend standalone) es un proyecto aparte con su propio repo y despliegue; el shell lo carga en tiempo de ejecución, Y el remote carga de vuelta el tema/componentes/sesión/API del shell (`centynella_shell/*`, ver `src/federation/sdk/`) — nunca duplica esas piezas.
+- `react`, `react-dom`, `react-router-dom`, MUI y Emotion se comparten como **singleton** para que exista una sola copia (ver [federation.config.ts](federation.config.ts)). **Todo remote debe declarar el mismo bloque `shared`.** Además, `react`/`react-dom` van con versión **exacta** (sin `^`) en el `package.json` de cada repo: un desfase de patch entre host y remote rompe los hooks en tiempo de ejecución sin avisar ni en build ni en tests (ver el comentario en `federation.config.ts`).
 - Si un remote falla o está caído, un _Error Boundary_ lo aísla: el shell y los demás módulos siguen funcionando.
 
 ## Estructura
@@ -91,24 +98,45 @@ Viven en `private/` (Vite: `envDir: 'private'`), una por ambiente: `.env.sandbox
 | `VITE_APP_NAME`     | Nombre visible de la app                                      |
 | `VITE_APP_ENV`      | `sandbox` \| `production`                                     |
 | `VITE_API_BASE_URL` | URL de CENTYNELLA-CORE (sin `/` final)                        |
-| `VITE_REMOTES`      | Remotes de la federación: `nombre@urlRemoteEntry,nombre@url…` |
+| `VITE_REMOTES`      | Remotes de la federación: `nombreFederación@urlRemoteEntry,…` |
 
 > ⚠ Todo `VITE_*` queda en el bundle público: **no guardar secretos aquí.**
 
+## Lo que el shell le presta a los remotes
+
+El shell expone `centynella_shell/theme`, `./components`, `./hooks`, `./services`, `./utils` y `./providers`
+(ver [federation.config.ts](federation.config.ts) → `FEDERATION_EXPOSES` y `src/federation/sdk/`): cada uno es
+un archivo "fachada" que decide exactamente qué se presta — nunca código suelto directo. Un remote consume esto
+declarando `centynella_shell` como su propio `remote` en Module Federation, apuntando al `remoteEntry.js` del
+shell corriendo; así usa el MISMO tema, los MISMOS componentes (`ModulePage`, `DataTable`, `RecordCard`…), la
+MISMA sesión (`useAuth`, `useToast`) y el MISMO cliente de API (`apiRequest`) que cualquier pantalla del shell,
+sin duplicar ni una línea de eso.
+
 ## Integrar un microfrontend standalone
 
+Ejemplo real: [centynella-clientes](https://github.com/roxRam16/centynella-clientes) (módulo de Clientes y fiado).
+
 1. Añade el remote a `VITE_REMOTES` en `private/.env.*`:
-   `VITE_REMOTES=orders@http://localhost:5174/remoteEntry.js`
-2. Declara el módulo para TypeScript, p. ej. en `src/federation/remotes.d.ts`: `declare module 'orders/App';`
-3. Regístralo en [src/federation/remoteRegistry.ts](src/federation/remoteRegistry.ts):
+   `VITE_REMOTES=centynella_clientes@http://localhost:5174/remoteEntry.js`
+   El nombre (`centynella_clientes`) **debe ser idéntico** al `FEDERATION_NAME` que el remote declara en su
+   propio `federation.config.ts` — federación nativa por módulos: el nombre es la clave global con la que se
+   resuelve, no un alias libre del shell.
+2. Declara su `./App` en [src/federation/remotes.d.ts](src/federation/remotes.d.ts):
+   `declare module 'centynella_clientes/App' { ... }`
+3. Regístralo en [src/federation/remoteRegistry.ts](src/federation/remoteRegistry.ts) (el `id`/`label`/`path`
+   sí son libres, son solo del shell):
    ```ts
-   { id: 'orders', label: 'Pedidos', path: '/orders', loader: () => import('orders/App') }
+   { id: 'clientes', label: 'Clientes', path: '/clientes', loader: () => import('centynella_clientes/App') }
    ```
-4. El shell genera solo la ruta (`/orders/*`) y el enlace en la navegación.
+4. El shell genera solo la ruta (`/clientes/*`) y el enlace en la navegación.
 
-> `Inventario` (`/inventory`) ya NO es un ejemplo de remote: es una pantalla propia del shell (ver más abajo). Si en el futuro se separa en un microfrontend de verdad, hay que liberar antes esa ruta y ese id.
+> `Inventario` (`/inventory`) NO es un remote: es una pantalla propia del shell (ver más abajo).
 
-El remote debe: exponer `./App` (componente React por `default`), compartir las mismas dependencias singleton y usar `basename` acorde a su ruta.
+El remote debe: exponer `./App` (componente React por `default`), consumir `centynella_shell/*` para tema,
+componentes, sesión y API, compartir exactamente el mismo bloque `shared` (misma versión exacta de
+`react`/`react-dom` en su `package.json`), declarar `filename: 'remoteEntry.js'` en su propia configuración de
+federación (si no, el build le pone hash y la URL de `VITE_REMOTES` deja de existir) y usar `basename` acorde
+a su ruta.
 
 ## Cómo se ve un microfrontend (layout del shell)
 
@@ -305,6 +333,25 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 23-oct-2026 — Primer microfrontend standalone real: `centynella-clientes`
+
+- El shell ahora EXPONE su sistema de diseño, componentes, hooks, sesión y cliente de API a los remotes
+  (`centynella_shell/theme|components|hooks|services|utils|providers`, ver `federation.config.ts` →
+  `FEDERATION_EXPOSES` y los archivos "fachada" en `src/federation/sdk/`).
+- `src/federation/remoteRegistry.ts` registra el primer remote de verdad: `centynella-clientes` (módulo de
+  Clientes y fiado/crédito informal), montado en `/clientes`. `src/federation/remotes.d.ts` declara su tipo.
+- Arreglos de integración encontrados al correr el shell + el remote juntos en un navegador real (no solo en
+  build/typecheck/lint, que no los detectan):
+  - `filename: 'remoteEntry.js'` en la configuración de federación de ambos repos — sin esto, el build le pone
+    hash al remote entry y la URL fija de `VITE_REMOTES`/`VITE_SHELL_REMOTE_ENTRY` deja de existir (404 en
+    producción/sandbox, aunque funcionaba por casualidad en dev).
+  - `react`/`react-dom` ahora van con versión EXACTA (sin `^`) en el `package.json` de este repo y del remote.
+    Un desfase de patch entre ambos (nos pasó de verdad: 19.3.0 aquí vs 19.3.1 instalado después en el remote)
+    hace que un componente de un lado llame hooks sobre el React del otro → pantalla en blanco o "Invalid hook
+    call" sin ningún aviso en build, lint ni tests; solo se ve en el navegador.
+  - CORS abierto (`cors: true`) en `server`/`preview` del remote, necesario para que el shell (otro origen)
+    cargue su `remoteEntry.js` y sus chunks fuera de producción (en producción lo da `nginx.conf`).
 
 ### 23-oct-2026 — Tarjetas a la medida (`RecordCard`)
 

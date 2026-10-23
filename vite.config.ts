@@ -4,7 +4,12 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { federation } from '@module-federation/vite';
-import { FEDERATION_NAME, SHARED_DEPENDENCIES, parseRemotes } from './federation.config';
+import {
+  FEDERATION_EXPOSES,
+  FEDERATION_NAME,
+  SHARED_DEPENDENCIES,
+  parseRemotes,
+} from './federation.config';
 
 /** Versión de la app: única fuente de verdad = package.json (la sube un hook de git). */
 const { version: APP_VERSION } = JSON.parse(readFileSync('./package.json', 'utf8')) as {
@@ -27,13 +32,28 @@ export default defineConfig(({ mode }) => {
       !isTest &&
         federation({
           name: FEDERATION_NAME,
+          // Nombre fijo (sin hash): los remotes lo referencian por URL estable
+          // (`VITE_SHELL_REMOTE_ENTRY`). Sin esto, el build le pone hash y esa URL deja de existir.
+          filename: 'remoteEntry.js',
           remotes: parseRemotes(env.VITE_REMOTES),
+          exposes: { ...FEDERATION_EXPOSES },
           shared: { ...SHARED_DEPENDENCIES },
           dts: false,
         }),
     ],
     resolve: {
-      alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        // El plugin de federación se apaga en pruebas (abajo): sin esto, el `import()` de cada
+        // remote registrado rompería el análisis estático de Vite al transformar `remoteRegistry.ts`.
+        ...(isTest
+          ? {
+              'centynella_clientes/App': fileURLToPath(
+                new URL('./src/test/remoteMocks/centynellaClientesApp.tsx', import.meta.url),
+              ),
+            }
+          : {}),
+      },
     },
     server: { port: 5173, strictPort: true },
     preview: { port: 5173, strictPort: true },
