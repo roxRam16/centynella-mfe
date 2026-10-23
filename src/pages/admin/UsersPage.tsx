@@ -5,7 +5,16 @@ import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/EditOutlined';
-import { Alert, Avatar, Button, Chip, ConfirmDialog, IconButton, ModulePage } from '@/components';
+import {
+  Alert,
+  Avatar,
+  Button,
+  Chip,
+  ConfirmDialog,
+  IconButton,
+  ModulePage,
+  RecordCard,
+} from '@/components';
 import type { Column, FilterField, FilterValues } from '@/components';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/hooks/useAuth';
@@ -182,6 +191,49 @@ export function UsersPage() {
   const rows = users.status === 'success' ? users.data.items : [];
   const total = users.status === 'success' ? users.data.total : 0;
 
+  /** Tarjeta de usuario (vista "Ver como tarjetas"), a la medida del mockup de referencia. */
+  const renderCard = (row: User) => (
+    <RecordCard
+      icon={row.status === 'active' ? <CheckCircleIcon /> : <BlockIcon />}
+      iconTone={row.status === 'active' ? 'success' : 'error'}
+      title={row.name}
+      subtitle={row.email}
+      badge={roleName(row.role)}
+      cornerAction={
+        canDelete && (
+          <IconButton
+            label={`Eliminar a ${row.name}`}
+            icon={<DeleteIcon fontSize="small" />}
+            tone="danger"
+            disabled={row.id === me?.id}
+            onClick={() => setDeleting(row)}
+          />
+        )
+      }
+      metrics={
+        <>
+          <Typography variant="body2" color="text.secondary">
+            Último acceso: {formatDateTime(row.last_login_at)}
+          </Typography>
+          {row.status === 'active' ? (
+            <Chip label="Activo" tone="success" icon={<CheckCircleIcon />} />
+          ) : (
+            <Chip label="Deshabilitado" tone="error" icon={<BlockIcon />} />
+          )}
+        </>
+      }
+      action={
+        canUpdate
+          ? {
+              label: 'Editar',
+              accessibleLabel: `Editar a ${row.name}`,
+              onClick: () => setEditing(row),
+            }
+          : undefined
+      }
+    />
+  );
+
   return (
     <ModulePage
       moduleKey="users"
@@ -227,6 +279,7 @@ export function UsersPage() {
         caption: 'Listado de usuarios',
         columns,
         rows,
+        renderCard,
         getRowId: (row) => row.id,
         getRowLabel: (row) => row.name,
         loading: users.status === 'loading',

@@ -170,7 +170,7 @@ describe('<UsersPage />', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     const card = (await screen.findByText('ana@example.com')).closest('li')!;
     expect(within(card).getByRole('button', { name: 'Editar a Ana Pérez' })).toBeInTheDocument();
-    expect(within(card).getByText('Rol')).toBeInTheDocument();
+    expect(within(card).getByText('Consulta')).toBeInTheDocument(); // insignia con el rol
 
     await userEvent.click(screen.getByRole('button', { name: 'Acciones' }));
     await userEvent.click(screen.getByRole('menuitemradio', { name: 'Ver como tabla' }));

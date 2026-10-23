@@ -1,9 +1,20 @@
 import { useCallback, useMemo, useState } from 'react';
 import Typography from '@mui/material/Typography';
+import BlockIcon from '@mui/icons-material/BlockOutlined';
+import CheckCircleIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/EditOutlined';
+import SellIcon from '@mui/icons-material/SellOutlined';
 import WarningIcon from '@mui/icons-material/WarningAmberOutlined';
-import { Alert, Button, Chip, ConfirmDialog, IconButton, ModulePage } from '@/components';
+import {
+  Alert,
+  Button,
+  Chip,
+  ConfirmDialog,
+  IconButton,
+  ModulePage,
+  RecordCard,
+} from '@/components';
 import type { Column, FilterField, FilterValues } from '@/components';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/hooks/useAuth';
@@ -160,6 +171,58 @@ export function InventoryPage() {
   const rows = products.status === 'success' ? products.data.items : [];
   const total = products.status === 'success' ? products.data.total : 0;
 
+  /** Tarjeta de producto (vista "Ver como tarjetas"), a la medida del mockup de referencia. */
+  const renderCard = (row: Product) => (
+    <RecordCard
+      icon={row.status === 'active' ? <CheckCircleIcon /> : <BlockIcon />}
+      iconTone={row.status === 'active' ? 'success' : 'neutral'}
+      title={row.name}
+      subtitle={row.category || undefined}
+      badge={row.sku}
+      cornerAction={
+        canDelete && (
+          <IconButton
+            label={`Eliminar a ${row.name}`}
+            icon={<DeleteIcon fontSize="small" />}
+            tone="danger"
+            onClick={() => setDeleting(row)}
+          />
+        )
+      }
+      metrics={
+        <>
+          {row.quantity <= row.low_stock_threshold ? (
+            <Chip label={`${row.quantity} ${row.unit}`} tone="warning" icon={<WarningIcon />} />
+          ) : (
+            <Typography variant="body2">
+              {row.quantity} {row.unit}
+            </Typography>
+          )}
+          {row.status === 'active' ? (
+            <Chip label="Activo" tone="success" />
+          ) : (
+            <Chip label="Descontinuado" tone="neutral" />
+          )}
+        </>
+      }
+      footer={
+        <>
+          <SellIcon fontSize="inherit" aria-hidden />
+          {formatCurrency(row.price)} / {row.unit}
+        </>
+      }
+      action={
+        canUpdate
+          ? {
+              label: 'Editar',
+              accessibleLabel: `Editar a ${row.name}`,
+              onClick: () => setEditing(row),
+            }
+          : undefined
+      }
+    />
+  );
+
   return (
     <ModulePage
       moduleKey="inventory"
@@ -205,6 +268,7 @@ export function InventoryPage() {
         caption: 'Catálogo de productos',
         columns,
         rows,
+        renderCard,
         getRowId: (row) => row.id,
         getRowLabel: (row) => row.name,
         loading: products.status === 'loading',

@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
@@ -14,6 +15,11 @@ interface RecordViewProps<T> {
   rows: readonly T[];
   getRowId: (row: T) => string;
   getRowLabel?: (row: T) => string;
+}
+
+interface DataCardsProps<T> extends RecordViewProps<T> {
+  /** Tarjeta a la medida del módulo (normalmente con `RecordCard`); si falta, se usa la genérica. */
+  renderCard?: (row: T) => ReactNode;
 }
 
 /** Lista "rótulo: valor" de las columnas de datos de un registro. */
@@ -60,7 +66,7 @@ function DetailList<T>({
  * Vista de TARJETAS (una por registro): cabecera con la columna principal, datos como
  * "rótulo: valor" y las acciones al pie. Se acomodan solas en 1, 2, 3… columnas según el ancho.
  */
-export function DataCards<T>({ columns, rows, getRowId }: RecordViewProps<T>) {
+export function DataCards<T>({ columns, rows, getRowId, renderCard }: DataCardsProps<T>) {
   const { primary, details, actions } = groupColumns(columns);
 
   return (
@@ -75,43 +81,49 @@ export function DataCards<T>({ columns, rows, getRowId }: RecordViewProps<T>) {
         gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 18rem), 1fr))',
       }}
     >
-      {rows.map((row) => (
-        <Box
-          component="li"
-          key={getRowId(row)}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: palette.neutral.surface,
-            border: `1px solid ${palette.neutral.border}`,
-            borderRadius: 2,
-            boxShadow: elevation[1],
-            transition: 'box-shadow 200ms ease',
-            '&:hover': { boxShadow: elevation[2] },
-            '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
-          }}
-        >
-          <Box sx={{ p: 2, pb: 1.5, borderBottom: `1px solid ${palette.neutral.border}` }}>
-            {primary.render(row)}
+      {rows.map((row) =>
+        renderCard ? (
+          <Box component="li" key={getRowId(row)}>
+            {renderCard(row)}
           </Box>
-          <Box sx={{ p: 2, flexGrow: 1 }}>
-            <DetailList row={row} details={details} stacked={false} />
-          </Box>
-          {actions && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: 0.5,
-                py: 1,
-                borderTop: `1px solid ${palette.neutral.border}`,
-              }}
-            >
-              {actions.render(row)}
+        ) : (
+          <Box
+            component="li"
+            key={getRowId(row)}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: palette.neutral.surface,
+              border: `1px solid ${palette.neutral.border}`,
+              borderRadius: 2,
+              boxShadow: elevation[1],
+              transition: 'box-shadow 200ms ease',
+              '&:hover': { boxShadow: elevation[2] },
+              '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+            }}
+          >
+            <Box sx={{ p: 2, pb: 1.5, borderBottom: `1px solid ${palette.neutral.border}` }}>
+              {primary.render(row)}
             </Box>
-          )}
-        </Box>
-      ))}
+            <Box sx={{ p: 2, flexGrow: 1 }}>
+              <DetailList row={row} details={details} stacked={false} />
+            </Box>
+            {actions && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 0.5,
+                  py: 1,
+                  borderTop: `1px solid ${palette.neutral.border}`,
+                }}
+              >
+                {actions.render(row)}
+              </Box>
+            )}
+          </Box>
+        ),
+      )}
     </Box>
   );
 }

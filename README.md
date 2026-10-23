@@ -137,6 +137,7 @@ Título (?)                                     [ + ][ ⟳ ][ filtro ][ Acciones
 - **`SearchBar`:** buscador principal de todo el ancho (región `search`, botón para limpiar).
 - **Menú "Acciones":** cambia entre **tabla (grid)** y **tarjetas** (una por registro; 1, 2, 3… columnas según el ancho). La vista elegida se recuerda por módulo (`useViewMode`, localStorage). El módulo puede añadir más acciones con `actions`.
 - **`DataTable`:** columnas con `primary` (identifica al registro) y `kind: 'actions'` (botones, van al pie de la tarjeta). **Paginación del servidor** integrada: 10 por defecto y selector de **10 · 20 · 50 · 100** registros, rango visible ("1–10 de 25") y paginador.
+- **Tarjetas a la medida ([RecordCard](src/components/RecordCard/RecordCard.tsx)):** diseño propio (inspirado en un mockup de referencia; colores y tipografía son los nuestros) con icono de estado, insignia con el degradado de marca, fila de métricas, pie con icono+texto y un botón de acción de ancho completo. `DataTable` lo usa cuando el módulo pasa `renderCard`; sin eso, cae en la tarjeta genérica armada con las `columns`. Ver [InventoryPage](src/pages/inventory/InventoryPage.tsx) y [UsersPage](src/pages/admin/UsersPage.tsx).
 - **Sin barras de desplazamiento en espacios angostos:** si el contenido mide menos de 720 px (se mide el contenido, no la ventana, así también reacciona al extender el menú lateral) la tabla pasa a la **vista compacta**: solo el registro y un icono de tres puntos; al pulsarlo se despliega el resto de la información en vertical.
 - **Acciones con iconos:** editar/eliminar/ver son `IconButton` (siempre con tooltip y `aria-label`, p. ej. "Editar a Ana").
 - Para un módulo nuevo: define las columnas, los `filters.fields`, el estado de página/filtros y pásalos a `<ModulePage …>`; los diálogos van como `children`.
@@ -182,7 +183,7 @@ Importa **siempre** de `@/components`, nunca de MUI en las pantallas. Cada compo
 | Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `IconButton`, `GoogleButton`, `Link`                 |
 | Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox`, `Switch`, `ChipSelect` (compatibles con `react-hook-form`)                       |
 | Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                                                       |
-| Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `Pagination`, `PageHeader`, `ModulePage`, `ActionBar`, `FilterAdvanced`, `SearchBar` |
+| Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `RecordCard`, `Pagination`, `PageHeader`, `ModulePage`, `ActionBar`, `FilterAdvanced`, `SearchBar` |
 | Identidad          | `Logo`, `Avatar`                                                                                                                     |
 
 ## Autenticación y sesión
@@ -304,6 +305,12 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 23-oct-2026 — Tarjetas a la medida (`RecordCard`)
+
+- Nuevo componente `RecordCard`, adaptado de un mockup de referencia a nuestra marca: icono de estado, insignia con degradado, fila de métricas, pie con icono+texto y botón de acción de ancho completo.
+- `DataTable` acepta `renderCard` para usarlo en la vista de tarjetas; Inventario y Usuarios ya lo usan (Bitácora se queda con la tarjeta genérica).
+- Arreglo: una preferencia de vista ("tarjetas") que quedaba guardada en `localStorage` podía filtrarse entre pruebas; el setup de pruebas ahora limpia el almacenamiento después de cada una.
 
 ### 22-oct-2026 — Primer módulo de negocio: Inventario
 

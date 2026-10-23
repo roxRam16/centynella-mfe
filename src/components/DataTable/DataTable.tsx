@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -30,6 +31,11 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
   /** `grid` (tabla, por defecto) o `cards` (una tarjeta por registro). */
   view?: DataView;
+  /**
+   * Tarjeta a la medida del módulo para la vista `cards` (normalmente con `RecordCard`).
+   * Si falta, se usa una tarjeta genérica armada con las `columns`.
+   */
+  renderCard?: (row: T) => ReactNode;
   /** Pie con selector de registros por página y paginador (paginación del servidor). */
   pagination?: DataTablePagination;
   /** Fuerza (o impide) la vista compacta; por defecto se decide midiendo el ancho disponible. */
@@ -53,6 +59,7 @@ export function DataTable<T>({
   loading = false,
   emptyMessage = 'No hay datos para mostrar.',
   view = 'grid',
+  renderCard,
   pagination,
   compact,
 }: DataTableProps<T>) {
@@ -82,7 +89,12 @@ export function DataTable<T>({
     if (loading) body = message('Cargando…', true);
     else if (rows.length === 0) body = message(emptyMessage);
     else
-      body = view === 'cards' ? <DataCards {...recordProps} /> : <CompactRows {...recordProps} />;
+      body =
+        view === 'cards' ? (
+          <DataCards {...recordProps} renderCard={renderCard} />
+        ) : (
+          <CompactRows {...recordProps} />
+        );
   } else {
     body = (
       <TableContainer

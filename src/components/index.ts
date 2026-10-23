@@ -55,6 +55,8 @@ export { Tabs } from './Tabs';
 export type { TabItem, TabsProps } from './Tabs';
 export { DataTable, DEFAULT_PAGE_SIZES } from './DataTable';
 export type { Column, DataTablePagination, DataTableProps, DataView } from './DataTable';
+export { RecordCard } from './RecordCard';
+export type { RecordCardAction, RecordCardIconTone, RecordCardProps } from './RecordCard';
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
 export { PageHeader } from './PageHeader';
