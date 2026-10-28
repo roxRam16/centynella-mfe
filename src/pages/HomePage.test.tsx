@@ -56,7 +56,8 @@ describe('<HomePage />', () => {
   it('muestra cuántos microfrontends hay registrados', () => {
     vi.spyOn(healthService, 'getHealth').mockReturnValue(new Promise(() => {}));
     renderPage();
-    // `centynella-clientes` ya es un remote real (ver `federation/remoteRegistry.ts`).
-    expect(screen.getByText('1 microfrontend(s) registrado(s).')).toBeInTheDocument();
+    // `centynella-clientes` y `centynella-proveedores` ya son remotes reales
+    // (ver `federation/remoteRegistry.ts`).
+    expect(screen.getByText('2 microfrontend(s) registrado(s).')).toBeInTheDocument();
   });
 });

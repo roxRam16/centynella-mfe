@@ -51,6 +51,9 @@ export default defineConfig(({ mode }) => {
               'centynella_clientes/App': fileURLToPath(
                 new URL('./src/test/remoteMocks/centynellaClientesApp.tsx', import.meta.url),
               ),
+              'centynella_proveedores/App': fileURLToPath(
+                new URL('./src/test/remoteMocks/centynellaProveedoresApp.tsx', import.meta.url),
+              ),
             }
           : {}),
       },

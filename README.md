@@ -334,6 +334,14 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 
 ## Historial de cambios
 
+### 28-oct-2026 — Segundo microfrontend standalone: `centynella-proveedores`
+
+- `src/federation/remoteRegistry.ts` registra `centynella-proveedores` (directorio de proveedores), montado
+  en `/proveedores`, siguiendo exactamente el mismo patrón que `centynella-clientes` — ya con las correcciones
+  de integración (nombre fijo de `remoteEntry.js`, versión exacta de React) resueltas desde el primer intento.
+- Confirma que el patrón de "exponer el shell" escala: ningún cambio nuevo en `federation.config.ts` ni en
+  `src/federation/sdk/` hizo falta para sumar este segundo remote.
+
 ### 23-oct-2026 — Primer microfrontend standalone real: `centynella-clientes`
 
 - El shell ahora EXPONE su sistema de diseño, componentes, hooks, sesión y cliente de API a los remotes

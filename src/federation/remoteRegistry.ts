@@ -41,4 +41,10 @@ export const remoteRegistry: readonly RemoteDefinition[] = [
     path: '/clientes',
     loader: () => import('centynella_clientes/App'),
   },
+  {
+    id: 'proveedores',
+    label: 'Proveedores',
+    path: '/proveedores',
+    loader: () => import('centynella_proveedores/App'),
+  },
 ];

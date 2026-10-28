@@ -9,3 +9,9 @@ declare module 'centynella_clientes/App' {
   const App: ComponentType;
   export default App;
 }
+
+declare module 'centynella_proveedores/App' {
+  import type { ComponentType } from 'react';
+  const App: ComponentType;
+  export default App;
+}
