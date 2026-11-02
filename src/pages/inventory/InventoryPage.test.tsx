@@ -19,6 +19,11 @@ const makeProduct = (overrides: Partial<Product> = {}): Product => ({
   quantity: 24,
   low_stock_threshold: 6,
   status: 'active',
+  barcode: null,
+  brand: '',
+  description: '',
+  cost: 0,
+  image_url: null,
   created_at: '2026-10-01T10:00:00Z',
   updated_at: '2026-10-01T10:00:00Z',
   ...overrides,
@@ -68,6 +73,21 @@ describe('<InventoryPage />', () => {
     expect(normal.closest('.MuiChip-root')).toBeNull();
   });
 
+  it('muestra la foto del producto como miniatura en la tabla', async () => {
+    setupApi({
+      'GET /api/v1/products': () => ({
+        json: makePage([makeProduct({ image_url: '/media/products/p-1.png' })]),
+      }),
+    });
+    renderWithProviders(<InventoryPage />);
+
+    const row = await screen.findByRole('row', { name: /Refresco de cola/ });
+    expect(within(row).getByRole('img')).toHaveAttribute(
+      'src',
+      expect.stringContaining('/media/products/p-1.png'),
+    );
+  });
+
   it('crea un producto desde el diálogo', async () => {
     const api = setupApi({
       'POST /api/v1/products': () => ({
@@ -98,6 +118,76 @@ describe('<InventoryPage />', () => {
     expect(await screen.findByRole('region', { name: 'Notificaciones' })).toHaveTextContent(
       /creado correctamente/,
     );
+  });
+
+  it('crea un producto con código de barras, marca, costo y descripción', async () => {
+    const api = setupApi({
+      'POST /api/v1/products': () => ({
+        status: 201,
+        json: makeProduct({ id: 'p-3', sku: 'NEW-1' }),
+      }),
+    });
+    renderWithProviders(<InventoryPage />);
+    await screen.findByRole('row', { name: /Refresco de cola/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Nuevo producto' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuevo producto' });
+    await userEvent.type(within(dialog).getByLabelText('SKU'), 'new-1');
+    await userEvent.type(within(dialog).getByLabelText('Nombre'), 'Producto nuevo');
+    await userEvent.type(within(dialog).getByLabelText('Código de barras'), '7501234567890');
+    await userEvent.type(within(dialog).getByLabelText('Marca'), 'Coca-Cola');
+    await userEvent.clear(within(dialog).getByLabelText('Costo'));
+    await userEvent.type(within(dialog).getByLabelText('Costo'), '8.5');
+    await userEvent.type(within(dialog).getByLabelText('Descripción'), 'Botella de vidrio.');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Crear producto' }));
+
+    await waitFor(() => expect(api.callsTo('POST /api/v1/products')).toHaveLength(1));
+    expect(api.callsTo('POST /api/v1/products')[0].body).toMatchObject({
+      barcode: '7501234567890',
+      brand: 'Coca-Cola',
+      cost: 8.5,
+      description: 'Botella de vidrio.',
+    });
+  });
+
+  it('un código de barras inválido muestra el error en el campo', async () => {
+    setupApi();
+    renderWithProviders(<InventoryPage />);
+    await screen.findByRole('row', { name: /Refresco de cola/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Nuevo producto' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuevo producto' });
+    await userEvent.type(within(dialog).getByLabelText('SKU'), 'new-1');
+    await userEvent.type(within(dialog).getByLabelText('Nombre'), 'Producto nuevo');
+    await userEvent.type(within(dialog).getByLabelText('Código de barras'), 'abc');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Crear producto' }));
+
+    expect(await within(dialog).findByText('De 6 a 20 dígitos')).toBeInTheDocument();
+  });
+
+  it('sube la foto al crear un producto', async () => {
+    const api = setupApi({
+      'POST /api/v1/products': () => ({
+        status: 201,
+        json: makeProduct({ id: 'p-3', sku: 'NEW-1' }),
+      }),
+      'POST /api/v1/products/p-3/image': () => ({
+        json: makeProduct({ id: 'p-3', sku: 'NEW-1', image_url: '/media/products/p-3.png' }),
+      }),
+    });
+    renderWithProviders(<InventoryPage />);
+    await screen.findByRole('row', { name: /Refresco de cola/ });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Nuevo producto' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nuevo producto' });
+    await userEvent.type(within(dialog).getByLabelText('SKU'), 'new-1');
+    await userEvent.type(within(dialog).getByLabelText('Nombre'), 'Producto nuevo');
+    const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+    const photo = new File([new Uint8Array(10)], 'foto.png', { type: 'image/png' });
+    await userEvent.upload(fileInput, photo);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Crear producto' }));
+
+    await waitFor(() => expect(api.callsTo('POST /api/v1/products/p-3/image')).toHaveLength(1));
   });
 
   it('el SKU no se puede editar', async () => {

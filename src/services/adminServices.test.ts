@@ -113,6 +113,9 @@ describe('productsService', () => {
       quantity: 1,
       low_stock_threshold: 1,
       status: 'active',
+      brand: '',
+      description: '',
+      cost: 0,
     });
     await productsService.updateProduct('p 1', { quantity: 5 });
     await productsService.deleteProduct('p 1');

@@ -1,4 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import BlockIcon from '@mui/icons-material/BlockOutlined';
 import CheckCircleIcon from '@mui/icons-material/CheckCircleOutline';
@@ -8,6 +10,7 @@ import SellIcon from '@mui/icons-material/SellOutlined';
 import WarningIcon from '@mui/icons-material/WarningAmberOutlined';
 import {
   Alert,
+  Avatar,
   Button,
   Chip,
   ConfirmDialog,
@@ -25,6 +28,7 @@ import { PERMISSIONS } from '@/services/types';
 import type { Product, ProductStatus } from '@/services/types';
 import { getErrorMessage } from '@/utils/errors';
 import { formatCurrency } from '@/utils/format';
+import { productImageUrl } from '@/utils/media';
 import { ProductFormDialog } from './ProductFormDialog';
 
 /** Tamaño de página inicial (el selector ofrece 10, 20, 50 y 100). */
@@ -98,14 +102,17 @@ export function InventoryPage() {
       header: 'Producto',
       primary: true,
       render: (row) => (
-        <>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {row.name}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-            {row.sku}
-          </Typography>
-        </>
+        <Stack direction="row" spacing={1.25} alignItems="center">
+          <Avatar name={row.name} src={productImageUrl(row)} size={32} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {row.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+              {row.sku}
+            </Typography>
+          </Box>
+        </Stack>
       ),
     },
     {
@@ -176,6 +183,7 @@ export function InventoryPage() {
     <RecordCard
       icon={row.status === 'active' ? <CheckCircleIcon /> : <BlockIcon />}
       iconTone={row.status === 'active' ? 'success' : 'neutral'}
+      imageUrl={productImageUrl(row)}
       title={row.name}
       subtitle={row.category || undefined}
       badge={row.sku}

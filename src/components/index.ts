@@ -31,6 +31,8 @@ export { Switch } from './Switch';
 export type { SwitchProps } from './Switch';
 export { ChipSelect } from './ChipSelect';
 export type { ChipSelectOption, ChipSelectProps } from './ChipSelect';
+export { ImageUpload } from './ImageUpload';
+export type { ImageUploadProps } from './ImageUpload';
 
 // Feedback y estados
 export { Alert } from './Alert';

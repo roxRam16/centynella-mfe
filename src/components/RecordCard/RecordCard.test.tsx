@@ -25,6 +25,14 @@ describe('<RecordCard />', () => {
     expect(document.querySelector('[aria-hidden="true"] svg')).toBeInTheDocument();
   });
 
+  it('con `imageUrl` muestra la foto en vez del icono de estado', () => {
+    renderCard({ imageUrl: 'https://example.com/foto.jpg' });
+
+    expect(document.querySelector('[aria-hidden="true"] svg')).not.toBeInTheDocument();
+    const image = document.querySelector('img');
+    expect(image).toHaveAttribute('src', 'https://example.com/foto.jpg');
+  });
+
   it('sin subtítulo, insignia, resaltado, métricas, pie o acción no los dibuja', () => {
     renderCard();
 

@@ -188,6 +188,16 @@ const skuSchema = z
   .regex(/^[A-Za-z0-9._-]{1,40}$/, 'Solo letras, números, punto, guion y guion bajo')
   .transform((value) => value.toUpperCase());
 
+// Código de barras: opcional; si se escribe, debe ser de 6 a 20 dígitos (EAN/UPC y variantes).
+// Vacío → `undefined` para que no se mande al backend (que lo valida como `6-20 dígitos | nulo`,
+// nunca como cadena vacía).
+const barcodeSchema = z
+  .string()
+  .trim()
+  .refine((value) => value === '' || /^[0-9]{6,20}$/.test(value), 'De 6 a 20 dígitos')
+  .transform((value) => (value === '' ? undefined : value))
+  .optional();
+
 export const productCreateSchema = z.object({
   sku: skuSchema,
   name: safeText(2, 120, 'Mínimo 2 caracteres'),
@@ -200,6 +210,10 @@ export const productCreateSchema = z.object({
     .int('Debe ser un número entero')
     .min(0, 'No puede ser negativo'),
   status: z.enum(['active', 'discontinued']),
+  barcode: barcodeSchema,
+  brand: safeText(0, 60, ''),
+  description: safeText(0, 500, ''),
+  cost: z.coerce.number().min(0, 'No puede ser negativo').max(1_000_000),
 });
 
 export const productEditSchema = productCreateSchema.omit({ sku: true });

@@ -17,9 +17,12 @@ export interface RecordCardAction {
 }
 
 export interface RecordCardProps {
-  /** Icono de estado a la izquierda del título (va dentro de un círculo de color). */
+  /** Icono de estado a la izquierda del título (va dentro de un círculo de color). Se ignora si
+   * se pasa `imageUrl`. */
   icon: ReactElement;
   iconTone?: RecordCardIconTone;
+  /** Foto del registro (p. ej. de un producto); si se pasa, reemplaza al icono de estado. */
+  imageUrl?: string | null;
   title: string;
   subtitle?: string;
   /** Botón(es) pequeño(s) en la esquina superior derecha (p. ej. eliminar). Opcional. */
@@ -53,6 +56,7 @@ const ICON_TONES: Record<RecordCardIconTone, { fg: string; bg: string }> = {
 export function RecordCard({
   icon,
   iconTone = 'neutral',
+  imageUrl,
   title,
   subtitle,
   cornerAction,
@@ -82,23 +86,39 @@ export function RecordCard({
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, p: 2, pb: 1 }}>
-        <Box
-          aria-hidden
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            width: '2.25rem',
-            height: '2.25rem',
-            borderRadius: '50%',
-            color: tone.fg,
-            backgroundColor: tone.bg,
-            '& svg': { fontSize: '1.25rem' },
-          }}
-        >
-          {icon}
-        </Box>
+        {imageUrl ? (
+          <Box
+            component="img"
+            src={imageUrl}
+            alt=""
+            sx={{
+              flexShrink: 0,
+              width: '2.25rem',
+              height: '2.25rem',
+              borderRadius: `${radius.small}px`,
+              objectFit: 'cover',
+              backgroundColor: palette.neutral.background,
+            }}
+          />
+        ) : (
+          <Box
+            aria-hidden
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              width: '2.25rem',
+              height: '2.25rem',
+              borderRadius: '50%',
+              color: tone.fg,
+              backgroundColor: tone.bg,
+              '& svg': { fontSize: '1.25rem' },
+            }}
+          >
+            {icon}
+          </Box>
+        )}
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography noWrap sx={{ fontWeight: 700 }}>
             {title}

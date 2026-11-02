@@ -15,6 +15,8 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface ApiRequestOptions {
   method?: HttpMethod;
+  /** `FormData` (p. ej. subir un archivo) viaja tal cual, sin `JSON.stringify` ni `Content-Type`
+   * explícito: el navegador le pone el `boundary` del multipart solo. */
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
@@ -47,15 +49,16 @@ function buildUrl(path: string, query: ApiRequestOptions['query']): string {
 
 async function send(path: string, options: ApiRequestOptions): Promise<Response> {
   const { method = 'GET', body, query, signal, auth = true } = options;
+  const isFormData = body instanceof FormData;
   const headers: Record<string, string> = { Accept: 'application/json' };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json';
   const token = tokenStore.get();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
 
   return fetch(buildUrl(path, query), {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     credentials: 'include',
     signal,
   });

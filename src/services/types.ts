@@ -100,6 +100,12 @@ export interface Product {
   quantity: number;
   low_stock_threshold: number;
   status: ProductStatus;
+  barcode: string | null;
+  brand: string;
+  description: string;
+  cost: number;
+  /** Ruta relativa servida por el API (`/media/...`); `null` sin foto. Usar `productImageUrl()`. */
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -11,6 +11,10 @@ export interface CreateProductInput {
   quantity: number;
   low_stock_threshold: number;
   status: ProductStatus;
+  barcode?: string;
+  brand: string;
+  description: string;
+  cost: number;
 }
 
 export interface UpdateProductInput {
@@ -21,6 +25,10 @@ export interface UpdateProductInput {
   quantity?: number;
   low_stock_threshold?: number;
   status?: ProductStatus;
+  barcode?: string;
+  brand?: string;
+  description?: string;
+  cost?: number;
 }
 
 export const listProducts = (
@@ -37,3 +45,16 @@ export const updateProduct = (id: string, input: UpdateProductInput): Promise<Pr
 
 export const deleteProduct = (id: string): Promise<void> =>
   apiRequest<void>(`/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+/** Sube (o reemplaza) la foto del producto. JPG, PNG o WEBP. */
+export const uploadProductImage = (id: string, file: File): Promise<Product> => {
+  const body = new FormData();
+  body.append('file', file);
+  return apiRequest<Product>(`/products/${encodeURIComponent(id)}/image`, {
+    method: 'POST',
+    body,
+  });
+};
+
+export const deleteProductImage = (id: string): Promise<Product> =>
+  apiRequest<Product>(`/products/${encodeURIComponent(id)}/image`, { method: 'DELETE' });

@@ -206,13 +206,13 @@ Fuentes (carpeta `mockups/`, solo referencia): `login.png` (pantalla de acceso),
 
 Importa **siempre** de `@/components`, nunca de MUI en las pantallas. Cada componente: carpeta propia + `index.ts` + prueba. Antes de crear uno nuevo, revisa si ya existe.
 
-| Grupo              | Componentes                                                                                                                          |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `IconButton`, `GoogleButton`, `Link`                 |
-| Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox`, `Switch`, `ChipSelect` (compatibles con `react-hook-form`)                       |
-| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                                                       |
+| Grupo              | Componentes                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Acciones           | `Button` (primary · secondary · outlined · text; `shape`, `danger`, `loading`), `IconButton`, `GoogleButton`, `Link`                               |
+| Formularios        | `TextField`, `PasswordField`, `Select`, `Checkbox`, `Switch`, `ChipSelect` (compatibles con `react-hook-form`)                                     |
+| Feedback           | `Alert`, `Spinner`, `Chip`, `Dialog`, `ConfirmDialog`, `DropdownMenu`, `Toast`                                                                     |
 | Estructura y datos | `Card`, `Grid`/`GridItem`, `Tabs`, `DataTable`, `RecordCard`, `Pagination`, `PageHeader`, `ModulePage`, `ActionBar`, `FilterAdvanced`, `SearchBar` |
-| Identidad          | `Logo`, `Avatar`                                                                                                                     |
+| Identidad          | `Logo`, `Avatar`                                                                                                                                   |
 
 ## Autenticación y sesión
 
@@ -333,6 +333,22 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 02-nov-2026 — Inventario: código de barras, marca, costo, descripción y foto
+
+- El modal de alta/edición de producto (`ProductFormDialog`) gana: código de barras (opcional,
+  6-20 dígitos), marca, costo (lo que cuesta, distinto del precio de venta) y descripción.
+- Nuevo componente `ImageUpload` (vista previa + "Añadir/Cambiar imagen" + quitar), reutilizable
+  en cualquier formulario que necesite subir una foto. Sube/reemplaza/quita contra
+  `POST`/`DELETE /products/{id}/image` del backend.
+- `Avatar` y `RecordCard` ganan una prop `src`/`imageUrl` opcional para mostrar la foto real del
+  registro en vez del icono o las iniciales; Inventario ya la usa en la tabla y en las tarjetas.
+- `apiRequest` ahora acepta `FormData` como cuerpo (sin `Content-Type` fijo, para que el
+  navegador le ponga el `boundary` del multipart) — necesario para subir archivos por la misma
+  función que usa el resto de la app.
+- Alcance explícitamente fuera de esta mejora (quedó pendiente a propósito, ver el mockup de
+  referencia en `public/mockupts/productos.png`): tipo Producto/Servicio, impuestos (IVA/IEPS),
+  múltiples listas de precio con margen automático, clave SAT.
 
 ### 28-oct-2026 — Segundo microfrontend standalone: `centynella-proveedores`
 

@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Stack from '@mui/material/Stack';
-import { Alert, Button, Dialog, Switch, TextField } from '@/components';
-import { createProduct, updateProduct } from '@/services/productsService';
+import { Alert, Button, Dialog, ImageUpload, Switch, TextField } from '@/components';
+import {
+  createProduct,
+  deleteProductImage,
+  updateProduct,
+  uploadProductImage,
+} from '@/services/productsService';
 import type { Product } from '@/services/types';
 import { getErrorMessage } from '@/utils/errors';
+import { productImageUrl } from '@/utils/media';
 import { productCreateSchema, productEditSchema } from '@/utils/validation';
 import type { z } from 'zod';
 
@@ -25,6 +31,13 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
   const isEdit = product !== null;
   const formId = 'product-form';
   const [serverError, setServerError] = useState<string | null>(null);
+  // La foto no es un campo del esquema (no viaja en el JSON del producto): se sube/quita aparte,
+  // después de crear o editar, contra `/products/{id}/image`.
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    product ? productImageUrl(product) : null,
+  );
+  const [imageRemoved, setImageRemoved] = useState(false);
   const {
     register,
     handleSubmit,
@@ -41,8 +54,18 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
       quantity: product?.quantity ?? 0,
       low_stock_threshold: product?.low_stock_threshold ?? 5,
       status: product?.status ?? 'active',
+      barcode: product?.barcode ?? '',
+      brand: product?.brand ?? '',
+      description: product?.description ?? '',
+      cost: product?.cost ?? 0,
     },
   });
+
+  const handleImageChange = (file: File | null) => {
+    setImageFile(file);
+    setImageRemoved(file === null);
+    setImagePreview(file ? URL.createObjectURL(file) : null);
+  };
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
@@ -57,11 +80,22 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
           quantity: values.quantity,
           low_stock_threshold: values.low_stock_threshold,
           status: values.status,
+          barcode: values.barcode,
+          brand: values.brand,
+          description: values.description,
+          cost: values.cost,
         };
         saved = await updateProduct(product.id, changes);
       } else {
         saved = await createProduct(values);
       }
+
+      if (imageFile) {
+        saved = await uploadProductImage(saved.id, imageFile);
+      } else if (imageRemoved && product?.image_url) {
+        saved = await deleteProductImage(saved.id);
+      }
+
       onSaved(saved);
     } catch (error) {
       setServerError(getErrorMessage(error));
@@ -86,6 +120,7 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
     >
       <Stack id={formId} component="form" spacing={2} noValidate onSubmit={onSubmit} sx={{ pt: 1 }}>
         {serverError && <Alert severity="error">{serverError}</Alert>}
+        <ImageUpload label="Foto del producto" value={imagePreview} onChange={handleImageChange} />
         <TextField
           label="SKU"
           placeholder="Ej. REFR-600"
@@ -101,6 +136,22 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
           {...register('name')}
         />
         <TextField
+          label="Código de barras"
+          placeholder="Ej. 7501234567890"
+          maxLength={20}
+          inputMode="numeric"
+          helperText="Opcional. De 6 a 20 dígitos."
+          error={errors.barcode?.message}
+          {...register('barcode')}
+        />
+        <TextField
+          label="Marca"
+          maxLength={60}
+          placeholder="Ej. Coca-Cola"
+          error={errors.brand?.message}
+          {...register('brand')}
+        />
+        <TextField
           label="Categoría"
           maxLength={60}
           placeholder="Ej. Bebidas"
@@ -113,6 +164,15 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
           placeholder="Ej. pieza, kg, caja"
           error={errors.unit?.message}
           {...register('unit')}
+        />
+        <TextField
+          label="Costo"
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          helperText="Lo que te cuesta a ti (para calcular margen más adelante)"
+          error={errors.cost?.message}
+          {...register('cost')}
         />
         <TextField
           label="Precio"
@@ -136,6 +196,12 @@ export function ProductFormDialog({ open, product, onClose, onSaved }: ProductFo
           helperText="Umbral de alerta de stock bajo"
           error={errors.low_stock_threshold?.message}
           {...register('low_stock_threshold')}
+        />
+        <TextField
+          label="Descripción"
+          maxLength={500}
+          error={errors.description?.message}
+          {...register('description')}
         />
         <Controller
           name="status"
