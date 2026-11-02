@@ -12,7 +12,7 @@ export interface DialogProps {
   onClose: () => void;
   /** Botones del pie (el principal a la derecha). */
   actions?: ReactNode;
-  maxWidth?: 'xs' | 'sm' | 'md';
+  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   children: ReactNode;
 }
 

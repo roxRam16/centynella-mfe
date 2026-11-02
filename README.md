@@ -334,6 +334,24 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 
 ## Historial de cambios
 
+### 02-nov-2026 — Inventario: alta/edición masiva de productos ("Productos múltiples")
+
+- Nueva acción **"Productos múltiples"** en el menú "Acciones" de Inventario (`BulkProductsDialog`),
+  con dos caminos: descargar/llenar/subir una **plantilla de Excel** propia (generada con
+  `exceljs`, con desplegable de Estado) o abrir el **catálogo actual en una cuadrícula tipo
+  Excel** (`SpreadsheetGrid`, sobre `jspreadsheet-ce`, MIT) para agregar productos nuevos y
+  editar los que ya existen en el mismo lugar — copiar/pegar varias celdas, insertar y borrar
+  filas, todo como en una hoja de cálculo real.
+- Nuevo endpoint del backend `POST /products/bulk` (1-500 filas, **207 Multi-Status**):
+  "mejor esfuerzo" — una fila con error (SKU repetido, id inexistente al editar) no detiene a
+  las demás; el resultado viene fila por fila. El cliente valida forma (SKU y nombre) antes de
+  enviar, para no tumbar el lote completo por una fila con datos incompletos.
+- La identidad de cada fila de la cuadrícula viaja en una columna oculta con el `id` del
+  producto (vacío = alta), no por su posición, así sigue ligada aunque se inserten o borren
+  filas antes de guardar.
+- `Dialog` ahora acepta `maxWidth="lg"|"xl"` (antes topaba en `md`), para dar más ancho a la
+  cuadrícula.
+
 ### 02-nov-2026 — Inventario: código de barras, marca, costo, descripción y foto
 
 - El modal de alta/edición de producto (`ProductFormDialog`) gana: código de barras (opcional,

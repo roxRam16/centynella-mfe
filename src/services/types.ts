@@ -110,6 +110,40 @@ export interface Product {
   updated_at: string;
 }
 
+/** Una fila de la carga masiva (`POST /products/bulk`). Sin `id` = alta; con `id` = edición. */
+export interface ProductBulkRow {
+  id?: string;
+  sku: string;
+  name: string;
+  category?: string;
+  unit?: string;
+  price: number;
+  quantity: number;
+  low_stock_threshold?: number;
+  status?: ProductStatus;
+  barcode?: string;
+  brand?: string;
+  description?: string;
+  cost?: number;
+}
+
+export type ProductBulkOutcome = 'created' | 'updated' | 'error';
+
+export interface ProductBulkRowResult {
+  row: number;
+  outcome: ProductBulkOutcome;
+  product: Product | null;
+  error: string | null;
+  code: string | null;
+}
+
+export interface ProductBulkResponse {
+  results: ProductBulkRowResult[];
+  created: number;
+  updated: number;
+  failed: number;
+}
+
 export interface ProductFilters {
   q?: string;
   category?: string;

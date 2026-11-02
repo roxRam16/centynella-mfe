@@ -1,6 +1,13 @@
 /** Catálogo de productos (`/api/v1/products`). */
 import { apiRequest } from './apiClient';
-import type { Page, Product, ProductFilters, ProductStatus } from './types';
+import type {
+  Page,
+  Product,
+  ProductBulkResponse,
+  ProductBulkRow,
+  ProductFilters,
+  ProductStatus,
+} from './types';
 
 export interface CreateProductInput {
   sku: string;
@@ -58,3 +65,8 @@ export const uploadProductImage = (id: string, file: File): Promise<Product> => 
 
 export const deleteProductImage = (id: string): Promise<Product> =>
   apiRequest<Product>(`/products/${encodeURIComponent(id)}/image`, { method: 'DELETE' });
+
+/** Alta/edición masiva (1-500 filas). Sin `id` = alta, con `id` = edición. "Mejor esfuerzo":
+ * una fila con error no detiene a las demás, el resultado viene fila por fila. */
+export const bulkUpsertProducts = (items: ProductBulkRow[]): Promise<ProductBulkResponse> =>
+  apiRequest<ProductBulkResponse>('/products/bulk', { method: 'POST', body: { items } });

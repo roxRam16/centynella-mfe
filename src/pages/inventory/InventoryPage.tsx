@@ -7,6 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircleOutline';
 import DeleteIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/EditOutlined';
 import SellIcon from '@mui/icons-material/SellOutlined';
+import UploadFileIcon from '@mui/icons-material/UploadFileOutlined';
 import WarningIcon from '@mui/icons-material/WarningAmberOutlined';
 import {
   Alert,
@@ -18,7 +19,7 @@ import {
   ModulePage,
   RecordCard,
 } from '@/components';
-import type { Column, FilterField, FilterValues } from '@/components';
+import type { Column, FilterField, FilterValues, MenuAction } from '@/components';
 import { useAsyncResource } from '@/hooks/useAsyncResource';
 import { useAuth } from '@/hooks/useAuth';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -29,6 +30,7 @@ import type { Product, ProductStatus } from '@/services/types';
 import { getErrorMessage } from '@/utils/errors';
 import { formatCurrency } from '@/utils/format';
 import { productImageUrl } from '@/utils/media';
+import { BulkProductsDialog } from './BulkProductsDialog';
 import { ProductFormDialog } from './ProductFormDialog';
 
 /** Tamaño de página inicial (el selector ofrece 10, 20, 50 y 100). */
@@ -54,6 +56,7 @@ export function InventoryPage() {
   const [editing, setEditing] = useState<Product | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const q = useDebouncedValue(search.trim());
   const filters = useMemo(
@@ -175,6 +178,16 @@ export function InventoryPage() {
     },
   ];
 
+  const moduleActions: MenuAction[] = canCreate
+    ? [
+        {
+          label: 'Productos múltiples',
+          icon: <UploadFileIcon fontSize="small" />,
+          onClick: () => setBulkOpen(true),
+        },
+      ]
+    : [];
+
   const rows = products.status === 'success' ? products.data.items : [];
   const total = products.status === 'success' ? products.data.total : 0;
 
@@ -247,6 +260,7 @@ export function InventoryPage() {
       }}
       onNew={canCreate ? () => setEditing('new') : undefined}
       newLabel="Nuevo producto"
+      actions={moduleActions}
       onRefresh={products.reload}
       refreshing={products.status === 'loading'}
       filters={{
@@ -318,6 +332,14 @@ export function InventoryPage() {
         onConfirm={() => void confirmDelete()}
         onCancel={() => setDeleting(null)}
       />
+
+      {bulkOpen && (
+        <BulkProductsDialog
+          open
+          onClose={() => setBulkOpen(false)}
+          onSaved={() => products.reload()}
+        />
+      )}
     </ModulePage>
   );
 }

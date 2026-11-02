@@ -33,6 +33,12 @@ export { ChipSelect } from './ChipSelect';
 export type { ChipSelectOption, ChipSelectProps } from './ChipSelect';
 export { ImageUpload } from './ImageUpload';
 export type { ImageUploadProps } from './ImageUpload';
+export { SpreadsheetGrid } from './SpreadsheetGrid';
+export type {
+  SpreadsheetGridColumn,
+  SpreadsheetGridHandle,
+  SpreadsheetGridProps,
+} from './SpreadsheetGrid';
 
 // Feedback y estados
 export { Alert } from './Alert';
