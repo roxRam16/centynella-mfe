@@ -4,6 +4,7 @@ import HistoryIcon from '@mui/icons-material/HistoryOutlined';
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import InventoryIcon from '@mui/icons-material/Inventory2Outlined';
 import PeopleIcon from '@mui/icons-material/PeopleOutline';
+import PointOfSaleIcon from '@mui/icons-material/PointOfSaleOutlined';
 import SecurityIcon from '@mui/icons-material/SecurityOutlined';
 import ShieldIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import type { RemoteDefinition } from '@/federation';
@@ -72,6 +73,10 @@ export function buildNavigation(
   hasPermission: (permission: string) => boolean,
 ): NavItem[] {
   const items: NavItem[] = [{ kind: 'link', to: '/', label: 'Inicio', icon: <HomeIcon /> }];
+
+  if (hasPermission(PERMISSIONS.SALES_CREATE)) {
+    items.push({ kind: 'link', to: '/sales', label: 'Ventas', icon: <PointOfSaleIcon /> });
+  }
 
   if (hasPermission(PERMISSIONS.PRODUCTS_READ)) {
     items.push({ kind: 'link', to: '/inventory', label: 'Inventario', icon: <InventoryIcon /> });

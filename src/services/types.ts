@@ -152,6 +152,69 @@ export interface ProductFilters {
   page_size?: number;
 }
 
+/** Cliente (fiado), solo lectura — el alta/edición completa vive en el remote de Clientes. Se
+ * necesita aquí nada más para el selector de "cobrar a crédito" de Ventas. */
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string | null;
+  credit_limit: number;
+  balance: number;
+}
+
+export interface CustomerFilters {
+  q?: string;
+  page?: number;
+  page_size?: number;
+}
+
+/** Venta (punto de venta, `/api/v1/sales`). */
+export type SalePaymentMethod = 'cash' | 'credit_card' | 'debit_card' | 'transfer' | 'store_credit';
+
+export interface SaleItem {
+  product_id: string;
+  sku: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+}
+
+export interface Sale {
+  id: string;
+  customer_id: string | null;
+  items: SaleItem[];
+  payment_method: SalePaymentMethod;
+  total: number;
+  /** Solo con `payment_method: 'cash'`. */
+  amount_tendered: number | null;
+  /** Solo con `payment_method: 'cash'`. */
+  change_due: number | null;
+  note: string;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface SaleLineInput {
+  product_id: string;
+  quantity: number;
+}
+
+export interface CreateSaleInput {
+  customer_id?: string | null;
+  items: SaleLineInput[];
+  payment_method: SalePaymentMethod;
+  amount_tendered?: number;
+  note?: string;
+}
+
+export interface SaleFilters {
+  customer_id?: string;
+  page?: number;
+  page_size?: number;
+}
+
 /** Permisos conocidos por el frontend (deben coincidir con `Permission` del backend). */
 export const PERMISSIONS = {
   USERS_READ: 'users:read',
@@ -165,6 +228,8 @@ export const PERMISSIONS = {
   PRODUCTS_CREATE: 'products:create',
   PRODUCTS_UPDATE: 'products:update',
   PRODUCTS_DELETE: 'products:delete',
+  SALES_READ: 'sales:read',
+  SALES_CREATE: 'sales:create',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

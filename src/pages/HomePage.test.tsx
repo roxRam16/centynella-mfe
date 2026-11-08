@@ -1,10 +1,12 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as healthService from '@/services/healthService';
+import { makeProfile } from '@/test/factories';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { HomePage } from './HomePage';
 
-const renderPage = () => renderWithProviders(<HomePage />);
+const renderPage = (options?: Parameters<typeof renderWithProviders>[1]) =>
+  renderWithProviders(<HomePage />, options);
 
 describe('<HomePage />', () => {
   afterEach(() => {
@@ -59,5 +61,23 @@ describe('<HomePage />', () => {
     // `centynella-clientes` y `centynella-proveedores` ya son remotes reales
     // (ver `federation/remoteRegistry.ts`).
     expect(screen.getByText('2 microfrontend(s) registrado(s).')).toBeInTheDocument();
+  });
+
+  it('con todos los permisos ofrece accesos rápidos a Ventas e Inventario', () => {
+    vi.spyOn(healthService, 'getHealth').mockReturnValue(new Promise(() => {}));
+    renderPage();
+
+    const quickActions = screen.getByRole('navigation', { name: 'Accesos rápidos' });
+    expect(within(quickActions).getByText('Nueva venta')).toBeInTheDocument();
+    expect(within(quickActions).getByText('Inventario')).toBeInTheDocument();
+  });
+
+  it('sin el permiso de ventas no ofrece el acceso rápido "Nueva venta"', () => {
+    vi.spyOn(healthService, 'getHealth').mockReturnValue(new Promise(() => {}));
+    renderPage({ auth: { user: makeProfile({ permissions: ['products:read'] }) } });
+
+    const quickActions = screen.getByRole('navigation', { name: 'Accesos rápidos' });
+    expect(within(quickActions).queryByText('Nueva venta')).not.toBeInTheDocument();
+    expect(within(quickActions).getByText('Inventario')).toBeInTheDocument();
   });
 });

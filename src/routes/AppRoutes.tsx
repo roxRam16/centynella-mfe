@@ -7,6 +7,7 @@ import { ErrorRoute, HomePage, ProfilePage, StatusPage } from '@/pages';
 import { LogsPage, RolesPage, UsersPage } from '@/pages/admin';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from '@/pages/auth';
 import { InventoryPage } from '@/pages/inventory';
+import { SalesPage } from '@/pages/sales';
 import { PERMISSIONS } from '@/services/types';
 import { PublicOnly, RequireAuth, RequirePermission } from './guards';
 
@@ -41,6 +42,9 @@ export function AppRoutes({ remotes = remoteRegistry }: AppRoutesProps) {
         <Route element={<ShellLayout remotes={remotes} />}>
           <Route index element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route element={<RequirePermission permission={PERMISSIONS.SALES_CREATE} />}>
+            <Route path="/sales" element={<SalesPage />} />
+          </Route>
           <Route element={<RequirePermission permission={PERMISSIONS.PRODUCTS_READ} />}>
             <Route path="/inventory" element={<InventoryPage />} />
           </Route>

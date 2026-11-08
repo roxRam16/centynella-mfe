@@ -356,6 +356,26 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 
 ## Historial de cambios
 
+### 08-nov-2026 — Primer módulo de punto de venta: Ventas
+
+- Pantalla **`/sales`** ("Ventas"), dentro del shell (igual que Inventario: necesita el
+  catálogo y el fiado de clientes en vivo todo el tiempo): buscar/escanear productos (un lector
+  USB "teclea" el código en el mismo buscador — el backend ahora también busca por código de
+  barras), carrito con cantidades, y cobrar en **efectivo** (con botones de denominación y
+  cambio), **tarjeta de crédito/débito**, **transferencia** o **a crédito** (liga la venta al
+  fiado del cliente, vía el `POST /customers/{id}/credit-movements` ya existente). Ticket final
+  con **imprimir** (`window.print()`) y **compartir por WhatsApp** (enlace `wa.me` con el
+  resumen).
+- Nuevo enlace "Ventas" en el menú lateral (antes de Inventario) y permiso `sales:create` como
+  guardia de la ruta; `centynella-core` trae el endpoint nuevo `POST /sales` — ver su propio
+  historial de cambios para el detalle del backend.
+- Nuevos **accesos rápidos** en la portada (Inicio): tarjetas a "Nueva venta" e "Inventario"
+  (y un acceso por cada microfrontend registrado), con el mismo criterio de permisos que el
+  menú lateral.
+- Alcance explícitamente fuera de esta primera versión (igual que en el backend): recargas y
+  servicios, facturar la venta, promociones, pedidos, pago dividido, asistente con IA.
+- 543 pruebas, cobertura 93 %.
+
 ### 07-nov-2026 — Docker: los 4 servicios juntos (API + shell + 2 remotes)
 
 - Nuevo [docker-compose.yml](docker-compose.yml) en este repo que levanta CENTYNELLA completo:

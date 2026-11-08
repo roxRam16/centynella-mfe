@@ -8,6 +8,8 @@ export const ALL_PERMISSIONS = [
   'products:update',
   'roles:manage',
   'roles:read',
+  'sales:create',
+  'sales:read',
   'users:create',
   'users:delete',
   'users:read',
