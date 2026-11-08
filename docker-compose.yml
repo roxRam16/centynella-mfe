@@ -1,0 +1,91 @@
+# Entorno local de CENTYNELLA completo: API + shell + los 2 microfrontends standalone.
+#
+# Da por hecho que los 4 repos son hermanos en disco (../centynella-core, ../centynella-clientes,
+# ../centynella-proveedores, junto a este). No se usa para desplegar nada: cada repo despliega
+# por su cuenta (ver el `deploy.yml` de cada uno); esto es solo para levantar todo junto aquí.
+#
+#   docker compose up -d --build                  # API (Atlas) + shell + clientes + proveedores
+#   docker compose --profile local up -d --build   # además, con Mongo local en vez de Atlas
+#   docker compose down
+#
+# Puertos (fijos y DISTINTOS de los de `npm run dev` de cada repo y de los que ya usan otros
+# proyectos locales — ver private/.env.docker de cada repo):
+#   8000  centynella-core (API)
+#   8084  centynella-clientes (8081 ya lo ocupaba otro proceso local, no un contenedor nuestro)
+#   8082  centynella-proveedores
+#   8083  centynella-mfe (shell)
+#   27018 Mongo local (perfil "local"; dentro de la red sigue siendo mongo:27017)
+#
+# Las URLs de `remoteEntry.js` (shell↔remotes) se hornean en el BUILD de Vite, no son
+# configurables en runtime: por eso cada repo tiene su propio private/.env.docker con estos
+# mismos puertos y hay que reconstruir (`--build`) si cambian.
+
+services:
+  mongo:
+    profiles: ['local']
+    image: mongo:7
+    container_name: centynella-mongo
+    restart: unless-stopped
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  core:
+    build: ../centynella-core
+    container_name: centynella-core
+    restart: unless-stopped
+    # Usa la MongoDB Atlas de centynella-core/private/.env.sandbox por defecto. Para usar el
+    # Mongo local de este compose: `--profile local` y sobreescribe MONGODB_URI aquí abajo con
+    # `environment: MONGODB_URI: mongodb://mongo:27017`.
+    env_file: ../centynella-core/private/.env.sandbox
+    ports:
+      - '8000:8000'
+    volumes:
+      - media-data:/code/media
+
+  clientes:
+    build:
+      context: ../centynella-clientes
+      args:
+        APP_ENV: docker
+    container_name: centynella-clientes
+    restart: unless-stopped
+    ports:
+      - '8084:80'
+
+  proveedores:
+    build:
+      context: ../centynella-proveedores
+      args:
+        APP_ENV: docker
+    container_name: centynella-proveedores
+    restart: unless-stopped
+    ports:
+      - '8082:80'
+
+  mfe:
+    build:
+      context: .
+      args:
+        APP_ENV: docker
+    container_name: centynella-mfe
+    restart: unless-stopped
+    depends_on:
+      - core
+      - clientes
+      - proveedores
+    environment:
+      API_ORIGIN: http://localhost:8000
+      REMOTE_ORIGINS: http://localhost:8084 http://localhost:8082
+    ports:
+      - '8083:80'
+
+volumes:
+  mongo-data:
+  media-data:

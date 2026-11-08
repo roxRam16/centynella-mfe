@@ -5,15 +5,18 @@
 #   Etapa 1 (build):   compila con Vite usando private/.env.<APP_ENV>
 #   Etapa 2 (runtime): sirve solo el estático con nginx (imagen mínima)
 #
-#   docker build --build-arg APP_ENV=sandbox -t centynella-mfe:sandbox .
-#   docker run --rm -p 8080:80 -e API_ORIGIN=http://localhost:8000 centynella-mfe:sandbox
+#   docker build --build-arg APP_ENV=docker -t centynella-mfe:docker .
+#   docker run --rm -p 8083:80 -e API_ORIGIN=http://localhost:8000 \
+#     -e REMOTE_ORIGINS="http://localhost:8084 http://localhost:8082" centynella-mfe:docker
+#
+#   O, más fácil, los 4 servicios juntos: ver docker-compose.yml en la raíz.
 # ─────────────────────────────────────────────────────────────
 
 # ── Etapa 1: build ───────────────────────────────────────────
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Ambiente de compilación: sandbox | production (selecciona private/.env.<APP_ENV>)
+# Ambiente de compilación: sandbox | docker | production (selecciona private/.env.<APP_ENV>)
 ARG APP_ENV=sandbox
 
 # Capa de dependencias primero: se cachea mientras no cambien package*.json

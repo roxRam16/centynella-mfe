@@ -266,7 +266,7 @@ El login muestra **"Sistema de inventario IA"** bajo el saludo y, como pie de p�
 | `REMOTE_ORIGINS` | Orígenes de los microfrontends remotos, separados por espacio (opcional)     |
 
 ```bash
-docker run --rm -p 8080:80 -e API_ORIGIN=https://api.centynella.com centynella-mfe:sandbox
+docker run --rm -p 8083:80 -e API_ORIGIN=https://api.centynella.com centynella-mfe:sandbox
 ```
 
 ## Pantallas de error
@@ -311,12 +311,34 @@ Cubren componentes, hooks, servicios (cliente HTTP, renovación de sesión), con
 
 ## Docker
 
+Build multi-stage: Node compila con `private/.env.<APP_ENV>` y **nginx** sirve solo `dist/` (~50 MB). Incluye fallback de SPA, cabeceras de seguridad y CSP (ver _Seguridad_), caché inmutable para `assets/`, `remoteEntry` sin caché, sonda `/health` y página estática para errores 5xx. Ojo: `VITE_API_BASE_URL` y `VITE_REMOTES` se **hornean al compilar** (ambiente = `APP_ENV`), mientras que `API_ORIGIN`/`REMOTE_ORIGINS` (CSP) se definen al **arrancar** el contenedor: deben apuntar a los mismos orígenes.
+
+**Los 4 servicios juntos** (API + shell + los 2 microfrontends standalone), pensando cada repo como lo que ya es — un deployable independiente, no un monolito — con [docker-compose.yml](docker-compose.yml):
+
 ```bash
-docker build --build-arg APP_ENV=sandbox -t centynella-mfe:sandbox .
-docker run --rm -p 8080:80 centynella-mfe:sandbox        # http://localhost:8080
+docker compose up -d --build                 # API (Atlas) + shell + clientes + proveedores
+docker compose --profile local up -d --build  # además, con Mongo local en vez de Atlas
+docker compose down
 ```
 
-Build multi-stage: Node compila con `private/.env.<APP_ENV>` y **nginx** sirve solo `dist/` (~50 MB). Incluye fallback de SPA, cabeceras de seguridad y CSP (ver _Seguridad_), caché inmutable para `assets/`, `remoteEntry` sin caché, sonda `/health` y página estática para errores 5xx. Ojo: `VITE_API_BASE_URL` se **hornea al compilar** (ambiente = `APP_ENV`), mientras que `API_ORIGIN` (CSP) se define al **arrancar** el contenedor: deben apuntar al mismo backend.
+Da por hecho que `centynella-core`, `centynella-clientes` y `centynella-proveedores` son hermanos de este repo en disco. Puertos fijos y DISTINTOS de los de `npm run dev` de cada repo (así puedes tener ambos arriba a la vez) y de los que ya usan otros proyectos locales:
+
+| Servicio                | Puerto  |
+| ------------------------ | ------- |
+| centynella-core (API)    | `8000`  |
+| centynella-clientes       | `8084`  |
+| centynella-proveedores    | `8082`  |
+| centynella-mfe (shell)    | `8083`  |
+| Mongo local (perfil `local`) | `27018` |
+
+Las URLs de `remoteEntry.js` (shell↔remotes) se hornean en el build de Vite, no son configurables en runtime: cada repo tiene su propio `private/.env.docker` con estos mismos puertos; si cambian, hay que reconstruir (`--build`).
+
+Un solo servicio suelto (para probar algo aislado):
+
+```bash
+docker build --build-arg APP_ENV=docker -t centynella-mfe:docker .
+docker run --rm -p 8083:80 centynella-mfe:docker        # http://localhost:8083
+```
 
 ## CI/CD
 
@@ -333,6 +355,23 @@ Requiere en GitHub (por _Environment_ `sandbox` / `production`): secretos `AWS_R
 5. Nada de backend en este repo.
 
 ## Historial de cambios
+
+### 07-nov-2026 — Docker: los 4 servicios juntos (API + shell + 2 remotes)
+
+- Nuevo [docker-compose.yml](docker-compose.yml) en este repo que levanta CENTYNELLA completo:
+  `centynella-core`, `centynella-mfe` (este), `centynella-clientes` y `centynella-proveedores`,
+  dando por hecho que los 4 repos son hermanos en disco. Cada uno sigue siendo un deployable
+  independiente (su propio `Dockerfile`, su propio despliegue a AWS) — esto es solo para
+  levantarlos juntos en local.
+- Nuevo ambiente `docker` (`private/.env.docker`, script `build:docker`) en este repo y en los
+  2 remotes, con puertos fijos y DISTINTOS de los de `npm run dev` de cada repo (8000 API, 8084
+  clientes, 8082 proveedores, 8083 shell, 27018 Mongo local) — así puedes tener los contenedores
+  arriba y seguir con `npm run dev` al mismo tiempo sin que se peleen por el puerto, y sin chocar
+  con otros proyectos locales (se revisaron antes de elegirlos).
+- Arreglo en el camino: `centynella-proveedores` tenía el `package-lock.json` desincronizado de
+  `package.json` desde su primer commit (`npm ci` fallaba) — no se había notado porque el día a
+  día usa `npm install`/`npm run dev`, no una instalación limpia como la que hace el build de
+  Docker.
 
 ### 02-nov-2026 — Inventario: alta/edición masiva de productos ("Productos múltiples")
 

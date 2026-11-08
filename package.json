@@ -11,6 +11,7 @@
     "dev": "vite --mode sandbox",
     "build": "tsc -b && vite build --mode production",
     "build:sandbox": "tsc -b && vite build --mode sandbox",
+    "build:docker": "tsc -b && vite build --mode docker",
     "build:production": "tsc -b && vite build --mode production",
     "preview": "vite preview --mode sandbox",
     "lint": "eslint .",

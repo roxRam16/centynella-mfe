@@ -6,8 +6,8 @@ import {
 } from './productTemplate';
 
 /** `File.prototype.arrayBuffer` no existe en jsdom; se rellena con el buffer real del archivo. */
-async function toFile(buffer: ArrayBuffer | Buffer, name = 'productos.xlsx'): Promise<File> {
-  const file = new File([buffer as never], name);
+async function toFile(buffer: ArrayBuffer, name = 'productos.xlsx'): Promise<File> {
+  const file = new File([buffer], name);
   Object.defineProperty(file, 'arrayBuffer', { value: async () => buffer });
   return file;
 }
